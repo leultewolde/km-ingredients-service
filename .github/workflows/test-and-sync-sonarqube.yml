@@ -36,6 +36,40 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+      - name: Wait for SonarQube Quality Gate
+        run: |
+          SONAR_HOST="https://sonar.leultewolde.com"
+          
+          # Extract the analysis task ID from report-task.txt
+          TASK_ID=$(cat build/sonar/report-task.txt | grep ceTaskId | cut -d= -f2)
+          
+          echo "Waiting for SonarQube quality gate result for task $TASK_ID"
+          
+          # Poll SonarQube until the analysis is complete
+          STATUS="PENDING"
+          for i in {1..30}; do
+            sleep 5
+            STATUS=$(curl -s -u "${{ secrets.SONAR_TOKEN }}:" "$SONAR_HOST/api/ce/task?id=$TASK_ID" | jq -r '.task.status')
+            if [ "$STATUS" = "SUCCESS" ]; then
+              break
+            elif [ "$STATUS" = "FAILED" ]; then
+              echo "SonarQube analysis failed."
+              exit 1
+            fi
+          done
+          
+          # Now check the quality gate status
+          ANALYSIS_ID=$(curl -s -u "${{ secrets.SONAR_TOKEN }}:" "$SONAR_HOST/api/ce/task?id=$TASK_ID" | jq -r '.task.analysisId')
+          QG_STATUS=$(curl -s -u "${{ secrets.SONAR_TOKEN }}:" "$SONAR_HOST/api/qualitygates/project_status?analysisId=$ANALYSIS_ID" | jq -r '.projectStatus.status')
+          
+          echo "Quality Gate status: $QG_STATUS"
+          if [ "$QG_STATUS" != "OK" ]; then
+            echo "Quality Gate failed. Failing pipeline."
+            exit 1
+          fi
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   create-github-issues:
     runs-on: ubuntu-latest
     needs: test-and-sonar
