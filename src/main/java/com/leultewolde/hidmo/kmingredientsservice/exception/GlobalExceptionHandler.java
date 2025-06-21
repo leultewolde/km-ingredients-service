@@ -12,6 +12,8 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final String ERROR_KEY = "error";
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -35,7 +37,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneric(Exception ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("error", ex.getMessage());
+        error.put(ERROR_KEY, ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
@@ -43,13 +45,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(StorageException.class)
     public ResponseEntity<Map<String, String>> handleStorage(StorageException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", ex.getMessage()));
+                .body(Map.of(ERROR_KEY, ex.getMessage()));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleResourceNotFound(ResourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", ex.getMessage()));
+                .body(Map.of(ERROR_KEY, ex.getMessage()));
     }
 
 }

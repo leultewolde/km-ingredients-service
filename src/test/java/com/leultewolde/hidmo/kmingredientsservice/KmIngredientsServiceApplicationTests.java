@@ -1,23 +1,20 @@
 package com.leultewolde.hidmo.kmingredientsservice;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.context.properties.bind.validation.BindValidationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.lang.reflect.Field;
-import java.util.Map;
+import org.springframework.context.ApplicationContext;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
-import static org.junit.jupiter.api.Assertions.*;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 class KmIngredientsServiceApplicationTests {
 
+    @Autowired private ApplicationContext context;
+
     @Test
     void contextLoads() {
+        // Simple test to see if application context loads
+        assertThat(context).isNotNull();
     }
 }
