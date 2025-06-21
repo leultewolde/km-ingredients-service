@@ -64,4 +64,4 @@ jobs:
             gh issue create --title "$TITLE" --body "$ISSUE_BODY" --label "sonarqube"
           done
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ github.token }}
