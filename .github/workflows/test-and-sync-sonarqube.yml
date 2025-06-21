@@ -26,10 +26,10 @@ jobs:
 
       - name: Run SonarQube analysis
         run: |
-          ./gradlew sonar \                                                              
+          ./gradlew sonarqube \                                                              
+            -Dsonar.host.url=https://sonar.leultewolde.com \
             -Dsonar.projectKey=hidmo-km-ingredients-service \
             -Dsonar.projectName='Hidmo KM Ingredients Service' \
-            -Dsonar.host.url=https://sonar.leultewolde.com \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
