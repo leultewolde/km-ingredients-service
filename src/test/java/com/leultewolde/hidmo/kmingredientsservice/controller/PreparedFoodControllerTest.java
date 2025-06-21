@@ -1,6 +1,5 @@
 package com.leultewolde.hidmo.kmingredientsservice.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.leultewolde.hidmo.kmingredientsservice.dto.response.PreparedFoodResponseDTO;
 import com.leultewolde.hidmo.kmingredientsservice.service.PreparedFoodService;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PreparedFoodControllerTest {
 
     @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
 
     @MockitoBean private PreparedFoodService service;
 
@@ -34,7 +32,7 @@ class PreparedFoodControllerTest {
 
         when(service.getAllPreparedFoods()).thenReturn(List.of(responseDTO));
 
-        mockMvc.perform(get("/v1/ingredients/prepared-foods"))
+        mockMvc.perform(get("/v1/prepared-foods"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Sauce"));
     }
@@ -62,7 +60,7 @@ class PreparedFoodControllerTest {
             }
         """.formatted(usageUUID);
 
-        mockMvc.perform(post("/v1/ingredients/prepared-foods")
+        mockMvc.perform(post("/v1/prepared-foods")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isCreated())
@@ -86,7 +84,7 @@ class PreparedFoodControllerTest {
             }
         """.formatted(usageUUID);
 
-        mockMvc.perform(post("/v1/ingredients/prepared-foods")
+        mockMvc.perform(post("/v1/prepared-foods")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidJson))
                 .andExpect(status().isBadRequest());

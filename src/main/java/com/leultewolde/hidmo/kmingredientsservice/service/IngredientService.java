@@ -33,7 +33,6 @@ public class IngredientService {
     @Transactional
     public IngredientResponseDTO create(IngredientRequestDTO dto) {
         Ingredient ing = mapper.toEntity(dto);
-        ing.setId(UUID.randomUUID());
         if (ing.getStatus() == null) {
             ing.setStatus(IngredientStatus.AVAILABLE);
         }

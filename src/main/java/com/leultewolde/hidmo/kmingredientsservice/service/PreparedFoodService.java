@@ -57,6 +57,7 @@ public class PreparedFoodService {
         return mapper.toDTO(preparedFoodRepo.save(food));
     }
 
+    @Transactional(readOnly = true)
     public List<PreparedFoodResponseDTO> getAllPreparedFoods() {
         return preparedFoodRepo.findAll().stream()
                 .map(mapper::toDTO)
