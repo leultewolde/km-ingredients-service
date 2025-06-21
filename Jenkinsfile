@@ -38,7 +38,6 @@ pipeline {
     stage('Deploy to Kubernetes') {
       steps {
         sh """
-          kubectl config use-context your-k8s-context
           kubectl rollout restart deployment km-ingredients-service -n lwt-api
         """
       }
