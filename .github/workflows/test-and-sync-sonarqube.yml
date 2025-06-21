@@ -50,20 +50,31 @@ jobs:
         run: |
           SONAR_HOST="https://sonar.leultewolde.com"
           PROJECT_KEY="hidmo-km-ingredients-service"
-
+          
+          echo "Fetching existing SonarQube-related GitHub issues..."
+          EXISTING_KEYS=$(gh issue list --label "sonarqube" --limit 100 --json body --jq '.[].body' | grep -o 'sonar-key:[^ ]*' | cut -d':' -f2)
+          
+          echo "Querying unresolved issues from SonarQube..."
           curl -s -u "${{ secrets.SONAR_TOKEN }}:" "$SONAR_HOST/api/issues/search?componentKeys=$PROJECT_KEY&resolved=false" |
           jq -c '.issues[]' | while read -r issue; do
-            TITLE=$(echo "$issue" | jq -r '.message')
             KEY=$(echo "$issue" | jq -r '.key')
+            if echo "$EXISTING_KEYS" | grep -q "$KEY"; then
+              echo "Issue for SonarQube key $KEY already exists. Skipping."
+              continue
+            fi
+          
+            TITLE=$(echo "$issue" | jq -r '.message')
             RULE=$(echo "$issue" | jq -r '.rule')
             FILE=$(echo "$issue" | jq -r '.component')
             LINE=$(echo "$issue" | jq -r '.line')
-
+          
             ISSUE_BODY="**Rule**: $RULE  
-            **File**: $FILE  
-            **Line**: $LINE  
-            **Key**: $KEY"
-
+            **File**: $FILE
+            **Line**: $LINE
+            **Key**: $KEY
+            <!-- sonar-key:$KEY -->"
+          
+            echo "Creating GitHub issue for $KEY"
             gh issue create --title "$TITLE" --body "$ISSUE_BODY" --label "sonarqube"
           done
         env:
