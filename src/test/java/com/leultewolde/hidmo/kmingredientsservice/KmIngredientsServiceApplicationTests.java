@@ -14,6 +14,7 @@ class KmIngredientsServiceApplicationTests {
 
     @Test
     void contextLoads() {
+        // Simple test to see if application context loads
         assertThat(context).isNotNull();
     }
 }
