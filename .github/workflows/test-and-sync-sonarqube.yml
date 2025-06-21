@@ -28,7 +28,7 @@ jobs:
         run: |
           ./gradlew sonar \
             -Dsonar.host.url=https://sonar.leultewolde.com \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
