@@ -9,8 +9,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
 class KmIngredientsServiceApplicationTests {
-    @Autowired
-    private ApplicationContext context;
+
+    @Autowired private ApplicationContext context;
 
     @Test
     void contextLoads() {
