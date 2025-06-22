@@ -160,4 +160,4 @@ jobs:
 
       - name: Deploy to Kubernetes
         run: |
-          kubectl rollout restart deployment km-ingredients-service -n lwt-api
+          kubectl -n lwt-api rollout restart deployment km-ingredients-service
