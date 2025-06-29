@@ -158,23 +158,35 @@ jobs:
 #          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > ~/.kube/config
 #          chmod 600 ~/.kube/config
 
+      - name: Install cloudflared
+        run: |
+          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
+          chmod +x cloudflared
+          sudo mv cloudflared /usr/local/bin/
+
+      - name: Connect to K3s API via Cloudflare
+        run: |
+          cloudflared access tcp \
+            --hostname k3s-api.leultewolde.com \
+            --service-token-id "${{ secrets.CF_TOKEN_ID }}" \
+            --service-token-secret "${{ secrets.CF_TOKEN_SECRET }}" \
+            --url localhost:6443 &
+          sleep 5
+
       - name: Set up kubeconfig
         run: |
           kubectl config set-cluster k3s \
-            --server="${K8S_API_SERVER}" \
+            --server=https://localhost:6443 \
             --insecure-skip-tls-verify=true
           
           kubectl config set-credentials github-deployer \
-            --token="${K8S_BEARER_TOKEN}"
+            --token="${{ secrets.K8S_BEARER_TOKEN }}"
           
           kubectl config set-context k3s \
             --cluster=k3s \
             --user=github-deployer
           
           kubectl config use-context k3s
-        env:
-          K8S_API_SERVER: ${{ secrets.K8S_API_SERVER }}
-          K8S_BEARER_TOKEN: ${{ secrets.K8S_BEARER_TOKEN }}
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
