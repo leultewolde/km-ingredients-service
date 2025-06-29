@@ -22,7 +22,7 @@ class ExceptionHandlingIntegrationTest {
     @Test
     void shouldReturn400ForInvalidIngredientPayload() {
         RestTemplate rest = new RestTemplate();
-        String url = "http://localhost:" + port + "/api/v1/ingredients";
+        String url = "http://localhost:" + port + "/v1/ingredients";
         String invalidJson = "{}";
 
         HttpHeaders headers = new HttpHeaders();
@@ -40,7 +40,7 @@ class ExceptionHandlingIntegrationTest {
     @Test
     void shouldReturn404ForMissingIngredient() {
         RestTemplate rest = new RestTemplate();
-        String url = "http://localhost:" + port + "/api/v1/ingredients/" + UUID.randomUUID();
+        String url = "http://localhost:" + port + "/v1/ingredients/" + UUID.randomUUID();
 
         HttpClientErrorException ex = assertThrows(HttpClientErrorException.NotFound.class, () ->
                 rest.getForEntity(url, String.class)

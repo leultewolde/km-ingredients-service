@@ -3,19 +3,19 @@ services:
     build: .
     container_name: km-ingredients-service
     ports:
-      - "8080:8080"
+      - "8001:8001"
     depends_on:
       - postgres
     environment:
-      SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ingredientsdb
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: secret
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      MINIO_URL: http://minio:9000
-      MINIO_ACCESS_NAME: minioadmin
-      MINIO_ACCESS_SECRET: minioadmin
-      MINIO_BUCKET_NAME: mybucket
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+      DB_URL: ${DB_URL}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      MINIO_URL: ${MINIO_URL}
+      MINIO_ACCESS_NAME: ${MINIO_ACCESS_NAME}
+      MINIO_ACCESS_SECRET: ${MINIO_ACCESS_SECRET}
+      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
 
   postgres:
     image: postgres:16
