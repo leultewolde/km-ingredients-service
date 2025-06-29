@@ -20,14 +20,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '24'
-
- 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
@@ -47,14 +44,11 @@ jobs:
         run: ./gradlew test
 
       - name: Run SonarQube analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: ./gradlew sonar --info -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew sonar -Dsonar.token=${{ secrets.SONAR_TOKEN }}
 
       - name: Wait for SonarQube Quality Gate
         run: |
-            SONAR_HOST="${{ secrets.SONAR_HOST_URL }}"
+          SONAR_HOST="${{ secrets.SONAR_HOST_URL }}"
           
           # Extract the analysis task ID from report-task.txt
           TASK_ID=$(cat build/sonar/report-task.txt | grep ceTaskId | cut -d= -f2)
