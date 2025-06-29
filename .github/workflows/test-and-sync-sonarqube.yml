@@ -152,11 +152,29 @@ jobs:
               ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
               ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG_TIMESTAMP }}
 
-      - name: Set up Kubeconfig
+#      - name: Set up Kubeconfig
+#        run: |
+#          mkdir -p ~/.kube
+#          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > ~/.kube/config
+#          chmod 600 ~/.kube/config
+
+      - name: Set up kubeconfig
         run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > ~/.kube/config
-          chmod 600 ~/.kube/config
+          kubectl config set-cluster k3s \
+            --server="${K8S_API_SERVER}" \
+            --insecure-skip-tls-verify=true
+          
+          kubectl config set-credentials github-deployer \
+            --token="${K8S_BEARER_TOKEN}"
+          
+          kubectl config set-context k3s \
+            --cluster=k3s \
+            --user=github-deployer
+          
+          kubectl config use-context k3s
+        env:
+          K8S_API_SERVER: ${{ secrets.K8S_API_SERVER }}
+          K8S_BEARER_TOKEN: ${{ secrets.K8S_BEARER_TOKEN }}
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
