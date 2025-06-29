@@ -75,16 +75,13 @@ jacocoTestCoverageVerification {
     }
 }
 
-//sonarqube {
-//    properties {
-//        property "sonar.projectKey", "hidmo-km-ingredients-service"
-//        property "sonar.projectName", "Hidmo KM Ingredients Service"
-//        property "sonar.sourceEncoding", "UTF-8"
-//        property "sonar.sources", "src/main/java"
-//        property "sonar.tests", "src/test/java"
-//        property "sonar.java.binaries", "build/classes"
-//    }
-//}
+sonar {
+    properties {
+        property "sonar.projectKey", "hidmo-km-ingredients-service"
+        property "sonar.projectName", "Hidmo KM Ingredients Service"
+        property "sonar.host.url", "https://sonar.leultewolde.com"
+    }
+}
 
 
 check.dependsOn jacocoTestCoverageVerification
