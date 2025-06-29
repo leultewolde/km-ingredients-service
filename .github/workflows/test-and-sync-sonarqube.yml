@@ -93,8 +93,11 @@ jobs:
           sudo apt install -y gh jq
 
       - name: Create GitHub Issues from SonarQube
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-            SONAR_HOST="${{ secrets.SONAR_HOST_URL }}"
+          SONAR_HOST="${{ secrets.SONAR_HOST_URL }}"
           PROJECT_KEY="hidmo-km-ingredients-service"
           
           echo "Fetching existing SonarQube-related GitHub issues..."
@@ -123,8 +126,6 @@ jobs:
             echo "Creating GitHub issue for $KEY"
             gh issue create --title "$TITLE" --body "$ISSUE_BODY" --label "sonarqube"
           done
-        env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
 
   docker-deploy:
     runs-on: ubuntu-latest
