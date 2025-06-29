@@ -75,11 +75,11 @@ jacocoTestCoverageVerification {
     }
 }
 
-
 sonar {
     properties {
         property "sonar.projectKey", "hidmo-km-ingredients-service"
         property "sonar.projectName", "Hidmo KM Ingredients Service"
+        property "sonar.host.url", "https://sonar.leultewolde.com"
     }
 }
 

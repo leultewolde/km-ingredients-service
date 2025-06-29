@@ -1,3 +1,4 @@
+---
 name: Test, Analyze, and Create GitHub Issues from SonarQube
 
 on:
@@ -49,7 +50,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: ./gradlew sonar --info
+        run: ./gradlew sonar --info -Dsonar.token=${{ secrets.SONAR_TOKEN }}
 
       - name: Wait for SonarQube Quality Gate
         run: |
@@ -169,4 +170,4 @@ jobs:
 
       - name: Deploy to Kubernetes
         run: |
-          kubectl -n lwt-api rollout restart deployment km-ingredients-service
+          kubectl -n hidmo rollout restart deployment km-ingredients-service
