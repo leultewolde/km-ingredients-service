@@ -25,6 +25,11 @@ pipeline {
                 sh 'chmod +x ./gradlew'
             }
         }
+        stage('Verify Docker') {
+            steps {
+                sh 'docker version'
+            }
+        }
         stage('Run tests') {
             steps {
                 sh './gradlew test'
