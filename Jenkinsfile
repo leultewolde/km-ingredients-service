@@ -30,50 +30,66 @@ pipeline {
                 sh './gradlew test'
             }
         }
-        stage('Run SonarQube analysis') {
-            environment {
-                SONAR_TOKEN = credentials('sonarqube-token')
-            }
+        stage('Run SonarQube Analysis') {
             steps {
-                sh './gradlew sonar'
+                withSonarQubeEnv('My SonarQube Server') {
+                    sh './gradlew sonar'
+                }
             }
         }
+
         stage('Wait for SonarQube Quality Gate') {
-            environment {
-                SONAR_TOKEN = credentials('sonarqube-token')
-                SONAR_HOST = credentials('sonar_host_url')
-            }
             steps {
-                sh '''
-                TASK_ID=$(cat build/sonar/report-task.txt | grep ceTaskId | cut -d= -f2)
-                echo "Waiting for SonarQube quality gate result for task $TASK_ID"
-
-                if ! command -v jq > /dev/null; then
-                  echo "jq not found, installing..."
-                  apt-get update && apt-get install -y jq
-                fi
-
-                STATUS="PENDING"
-                for i in {1..30}; do
-                    sleep 5
-                    STATUS=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST/api/ce/task?id=$TASK_ID" | jq -r '.task.status')
-                    if [ "$STATUS" = "SUCCESS" ]; then
-                        break
-                    elif [ "$STATUS" = "FAILED" ]; then
-                        echo "SonarQube analysis failed."
-                        exit 1
-                    fi
-                done
-                ANALYSIS_ID=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST/api/ce/task?id=$TASK_ID" | jq -r '.task.analysisId')
-                QG_STATUS=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST/api/qualitygates/project_status?analysisId=$ANALYSIS_ID" | jq -r '.projectStatus.status')
-                echo "Quality Gate status: $QG_STATUS"
-                if [ "$QG_STATUS" != "OK" ]; then
-                    echo "Quality Gate failed. Failing pipeline."
-                    exit 1
-                fi
-                '''
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
+
+//         stage('Run SonarQube analysis') {
+//             environment {
+//                 SONAR_TOKEN = credentials('sonarqube-token')
+//             }
+//             steps {
+//                 sh './gradlew sonar'
+//             }
+//         }
+//         stage('Wait for SonarQube Quality Gate') {
+//             environment {
+//                 SONAR_TOKEN = credentials('sonarqube-token')
+//                 SONAR_HOST = credentials('sonar_host_url')
+//             }
+//             steps {
+//                 sh '''
+//                 TASK_ID=$(cat build/sonar/report-task.txt | grep ceTaskId | cut -d= -f2)
+//                 echo "Waiting for SonarQube quality gate result for task $TASK_ID"
+//
+//                 if ! command -v jq > /dev/null; then
+//                   echo "jq not found, installing..."
+//                   apt-get update && apt-get install -y jq
+//                 fi
+//
+//                 STATUS="PENDING"
+//                 for i in {1..30}; do
+//                     sleep 5
+//                     STATUS=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST/api/ce/task?id=$TASK_ID" | jq -r '.task.status')
+//                     if [ "$STATUS" = "SUCCESS" ]; then
+//                         break
+//                     elif [ "$STATUS" = "FAILED" ]; then
+//                         echo "SonarQube analysis failed."
+//                         exit 1
+//                     fi
+//                 done
+//                 ANALYSIS_ID=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST/api/ce/task?id=$TASK_ID" | jq -r '.task.analysisId')
+//                 QG_STATUS=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST/api/qualitygates/project_status?analysisId=$ANALYSIS_ID" | jq -r '.projectStatus.status')
+//                 echo "Quality Gate status: $QG_STATUS"
+//                 if [ "$QG_STATUS" != "OK" ]; then
+//                     echo "Quality Gate failed. Failing pipeline."
+//                     exit 1
+//                 fi
+//                 '''
+//             }
+//         }
         stage('Create GitHub Issues from SonarQube') {
             environment {
                 GH_TOKEN = credentials('github_token')
