@@ -47,6 +47,12 @@ pipeline {
                 sh '''
                 TASK_ID=$(cat build/sonar/report-task.txt | grep ceTaskId | cut -d= -f2)
                 echo "Waiting for SonarQube quality gate result for task $TASK_ID"
+
+                if ! command -v jq > /dev/null; then
+                  echo "jq not found, installing..."
+                  apt-get update && apt-get install -y jq
+                fi
+
                 STATUS="PENDING"
                 for i in {1..30}; do
                     sleep 5
