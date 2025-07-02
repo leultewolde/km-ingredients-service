@@ -68,13 +68,25 @@ pipeline {
         stage('Docker Build and Push') {
             steps {
                 script {
-                    docker.withRegistry("https://${env.REGISTRY}", 'docker-hub-credentials') {
-                        sh "docker build -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} ."
-                        sh "docker tag ${env.IMAGE_NAME}:${env.IMAGE_TAG} ${env.IMAGE_NAME}:${env.IMAGE_TAG_TIMESTAMP}"
-                        sh "docker tag ${env.IMAGE_NAME}:${env.IMAGE_TAG} ${env.IMAGE_NAME}:latest"
-                        sh "docker push ${env.IMAGE_NAME}:${env.IMAGE_TAG}"
-                        sh "docker push ${env.IMAGE_NAME}:${env.IMAGE_TAG_TIMESTAMP}"
-                        sh "docker push ${env.IMAGE_NAME}:latest"
+                    withVault([
+                        vaultSecrets: [[
+                            path: '/v1/secret/data/jenkins/docker',
+                            engineVersion: 2,
+                            secretValues: [[envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
+                                           [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']]
+                        ]],
+                        vaultUrl: 'https://vault.leultewolde.com',
+                        vaultCredentialId: 'vault-credentials'
+                    ]) {
+                        sh '''
+                            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
+                            docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                            docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+                            docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+                            docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                            docker push ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+                            docker push ${IMAGE_NAME}:latest
+                        '''
                     }
                 }
             }
@@ -84,25 +96,45 @@ pipeline {
                 expression { params.ENVIRONMENT != null }
             }
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KCFG')]) {
-                    sh '''
-                    mkdir -p ~/.kube
-                    cp "$KCFG" ~/.kube/config
-                    chmod 600 ~/.kube/config
-                    kubectl set image deployment/km-ingredients-service km-ingredients-service=${env.IMAGE_NAME}:${env.IMAGE_TAG} -n ${params.ENVIRONMENT}
-                    '''
+                script {
+                    withVault([
+                        vaultSecrets: [[
+                            path: '/v1/secret/data/jenkins/kubeconfig',
+                            engineVersion: 2,
+                            secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
+                        ]],
+                        vaultUrl: 'https://vault.leultewolde.com',
+                        vaultCredentialId: 'vault-credentials'
+                    ]) {
+                        sh '''
+                            mkdir -p ~/.kube
+                            echo "$KUBE_CONFIG" > ~/.kube/config
+                            chmod 600 ~/.kube/config
+                            kubectl set image deployment/km-ingredients-service km-ingredients-service=$IMAGE_NAME:$IMAGE_TAG -n $ENVIRONMENT
+                        '''
+                    }
                 }
             }
         }
         stage('Deploy to K3s') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KCFG')]) {
-                    sh '''
-                    mkdir -p ~/.kube
-                    cp "$KCFG" ~/.kube/config
-                    chmod 600 ~/.kube/config
-                    kubectl set image deployment/km-ingredients-service km-ingredients-service=${env.IMAGE_NAME}:${env.IMAGE_TAG}
-                    '''
+                script {
+                    withVault([
+                        vaultSecrets: [[
+                            path: '/v1/secret/data/jenkins/kubeconfig',
+                            engineVersion: 2,
+                            secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
+                        ]],
+                        vaultUrl: 'https://vault.leultewolde.com',
+                        vaultCredentialId: 'vault-credentials'
+                    ]) {
+                        sh '''
+                            mkdir -p ~/.kube
+                            echo "$KUBE_CONFIG" > ~/.kube/config
+                            chmod 600 ~/.kube/config
+                            kubectl set image deployment/km-ingredients-service km-ingredients-service=$IMAGE_NAME:$IMAGE_TAG
+                        '''
+                    }
                 }
             }
         }
