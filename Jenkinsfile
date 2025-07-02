@@ -65,32 +65,63 @@ pipeline {
             }
           }
         }
+//         stage('Docker Build and Push') {
+//             steps {
+//                 script {
+//                     withVault([
+//                         vaultSecrets: [[
+//                             path: '/v1/secret/data/jenkins/docker',
+//                             engineVersion: 2,
+//                             secretValues: [[envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
+//                                            [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']]
+//                         ]],
+//                         vaultUrl: 'https://vault.leultewolde.com',
+//                         vaultCredentialId: 'vault-root-token'
+//                     ]) {
+//                         sh '''
+//                             echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
+//                             docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+//                             docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+//                             docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+//                             docker push ${IMAGE_NAME}:${IMAGE_TAG}
+//                             docker push ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+//                             docker push ${IMAGE_NAME}:latest
+//                         '''
+//                     }
+//                 }
+//             }
+//         }
         stage('Docker Build and Push') {
-            steps {
-                script {
-                    withVault([
-                        vaultSecrets: [[
-                            path: '/v1/secret/data/jenkins/docker',
-                            engineVersion: 2,
-                            secretValues: [[envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
-                                           [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']]
-                        ]],
-                        vaultUrl: 'https://vault.leultewolde.com',
-                        vaultCredentialId: 'vault-root-token'
-                    ]) {
-                        sh '''
-                            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
-                            docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                            docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
-                            docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-                            docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                            docker push ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
-                            docker push ${IMAGE_NAME}:latest
-                        '''
-                    }
+          steps {
+            script {
+              docker.image('docker:24.0.5-cli').inside('--privileged -v /var/run/docker.sock:/var/run/docker.sock') {
+                withVault([
+                  vaultSecrets: [[
+                    path: '/v1/secret/data/jenkins/docker',
+                    engineVersion: 2,
+                    secretValues: [
+                      [envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
+                      [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
+                    ]
+                  ]],
+                  vaultUrl: 'https://vault.leultewolde.com',
+                  vaultCredentialId: 'vault-root-token'
+                ]) {
+                  sh '''
+                    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
+                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                    docker push ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+                    docker push ${IMAGE_NAME}:latest
+                  '''
                 }
+              }
             }
+          }
         }
+
         stage('Promote') {
             when {
                 expression { params.ENVIRONMENT != null }
