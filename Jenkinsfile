@@ -9,10 +9,16 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                cleanWs()
-
-                checkout scm
-
+                script {
+                    try {
+                        deleteDir()
+                        checkout scm
+                    } catch (err) {
+                        echo "Git checkout failed, retrying with forced cleanup..."
+                        deleteDir()
+                        checkout scm
+                    }
+                }
                 echo "Building ${env.JOB_NAME}..."
             }
         }
