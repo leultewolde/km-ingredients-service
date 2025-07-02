@@ -76,7 +76,7 @@ pipeline {
                                            [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']]
                         ]],
                         vaultUrl: 'https://vault.leultewolde.com',
-                        vaultCredentialId: 'vault-credentials'
+                        vaultCredentialId: 'vault-root-token'
                     ]) {
                         sh '''
                             echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
@@ -104,7 +104,7 @@ pipeline {
                             secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
                         ]],
                         vaultUrl: 'https://vault.leultewolde.com',
-                        vaultCredentialId: 'vault-credentials'
+                        vaultCredentialId: 'vault-root-token'
                     ]) {
                         sh '''
                             mkdir -p ~/.kube
@@ -126,7 +126,7 @@ pipeline {
                             secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
                         ]],
                         vaultUrl: 'https://vault.leultewolde.com',
-                        vaultCredentialId: 'vault-credentials'
+                        vaultCredentialId: 'vault-root-token'
                     ]) {
                         sh '''
                             mkdir -p ~/.kube
