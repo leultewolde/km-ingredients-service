@@ -9,7 +9,11 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                cleanWs()
+
                 checkout scm
+
+                echo "Building ${env.JOB_NAME}..."
             }
         }
         stage('Set up JDK') {
@@ -92,5 +96,16 @@ pipeline {
                 }
             }
         }
+    }
+    post {
+            // Clean after build
+            always {
+                cleanWs(cleanWhenNotBuilt: false,
+                        deleteDirs: true,
+                        disableDeferredWipeout: true,
+                        notFailBuild: true,
+                        patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
+                                   [pattern: '.propsfile', type: 'EXCLUDE']])
+            }
     }
 }
