@@ -91,36 +91,74 @@ pipeline {
 //                 }
 //             }
 //         }
+//         stage('Docker Build and Push') {
+//           steps {
+//             script {
+//               docker.image('docker:24.0.5-cli').inside('--privileged -v /var/run/docker.sock:/var/run/docker.sock') {
+//                 withVault([
+//                   vaultSecrets: [[
+//                     path: '/v1/secret/data/jenkins/docker',
+//                     engineVersion: 2,
+//                     secretValues: [
+//                       [envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
+//                       [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
+//                     ]
+//                   ]],
+//                   vaultUrl: 'https://vault.leultewolde.com',
+//                   vaultCredentialId: 'vault-root-token'
+//                 ]) {
+//                   sh '''
+//                     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
+//                     docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+//                     docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+//                     docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+//                     docker push ${IMAGE_NAME}:${IMAGE_TAG}
+//                     docker push ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+//                     docker push ${IMAGE_NAME}:latest
+//                   '''
+//                 }
+//               }
+//             }
+//           }
+//         }
         stage('Docker Build and Push') {
           steps {
             script {
-              docker.image('docker:24.0.5-cli').inside('--privileged -v /var/run/docker.sock:/var/run/docker.sock') {
-                withVault([
-                  vaultSecrets: [[
-                    path: '/v1/secret/data/jenkins/docker',
-                    engineVersion: 2,
-                    secretValues: [
-                      [envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
-                      [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
-                    ]
-                  ]],
-                  vaultUrl: 'https://vault.leultewolde.com',
-                  vaultCredentialId: 'vault-root-token'
-                ]) {
-                  sh '''
-                    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
-                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
-                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                    docker push ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
-                    docker push ${IMAGE_NAME}:latest
-                  '''
-                }
+              withVault([
+                vaultSecrets: [[
+                  path: '/v1/secret/data/jenkins/docker',
+                  engineVersion: 2,
+                  secretValues: [
+                    [envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
+                    [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
+                  ]
+                ]],
+                vaultUrl: 'https://vault.leultewolde.com',
+                vaultCredentialId: 'vault-root-token'
+              ]) {
+                sh '''
+                  echo "Setting up Kaniko auth config..."
+                  mkdir -p /tmp/kaniko
+                  echo "{\"auths\":{\"https://${REGISTRY}\":{\"username\":\"$DOCKER_USERNAME\",\"password\":\"$DOCKER_PASSWORD\"}}}" > /tmp/kaniko/config.json
+
+                  echo "Building and pushing image using Kaniko..."
+                  docker run --rm \
+                    -v $(pwd):/workspace \
+                    -v /tmp/kaniko:/kaniko/.docker \
+                    gcr.io/kaniko-project/executor:latest \
+                    --context /workspace \
+                    --dockerfile /workspace/Dockerfile \
+                    --destination $IMAGE_NAME:$IMAGE_TAG \
+                    --destination $IMAGE_NAME:$IMAGE_TAG_TIMESTAMP \
+                    --destination $IMAGE_NAME:latest \
+                    --verbosity info
+                '''
               }
             }
           }
         }
+
+
 
         stage('Promote') {
             when {
