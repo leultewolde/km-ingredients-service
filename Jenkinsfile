@@ -6,6 +6,10 @@ pipeline {
         IMAGE_TAG_TIMESTAMP = "${env.BUILD_ID}-${env.BUILD_NUMBER}-${env.GIT_COMMIT}"
         REGISTRY = 'docker.io'
     }
+    options {
+        disableConcurrentBuilds()
+        skipDefaultCheckout()
+    }
     stages {
         stage('Checkout') {
             steps {
