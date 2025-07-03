@@ -126,17 +126,15 @@ pipeline {
             script {
               withVault([
                 vaultSecrets: [[
-                  path: 'v1/secret/data/jenkins/docker',
+                  path: '/v1/secret/data/jenkins/docker',
+                  vaultUrl: 'https://vault.leultewolde.com',
+                  vaultCredentialId: 'vault-root-token'
                   engineVersion: 2,
                   secretValues: [
                     [envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
                     [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
                   ]
-                ]],
-                configuration = [
-                    vaultUrl: 'https://vault.leultewolde.com',
-                    vaultCredentialId: 'vault-root-token'
-                ]
+                ]]
               ]) {
                 sh '''
                   echo "Setting up Kaniko auth config..."
