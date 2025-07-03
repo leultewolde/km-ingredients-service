@@ -1,5 +1,8 @@
 pipeline {
 	agent any
+	tools {
+		jdk 'temurin-24'
+    }
     environment {
 		IMAGE_NAME = 'ivtheforth/km-ingredients-service'
         IMAGE_TAG = "${env.GIT_COMMIT}"
@@ -23,11 +26,6 @@ pipeline {
                     }
                 }
                 echo "Building ${env.JOB_NAME}..."
-            }
-        }
-        stage('Set up JDK') {
-			tools {
-				jdk 'temurin-24'
             }
         }
         stage('Gradle Build & Test') {
