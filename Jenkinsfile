@@ -32,6 +32,9 @@ pipeline {
             }
             steps {
 				echo 'JDK configured'
+				sh 'java -version'
+				sh 'javac -version'
+				sh './gradlew --version'
             }
         }
         stage('Grant execute permission to Gradle') {
