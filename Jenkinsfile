@@ -177,7 +177,7 @@ pipeline {
 			steps {
 				withVault([
 					vaultSecrets: [
-						[path: '/v1/secret/data/jenkins/kubeconfig', secretValues: [
+						[path: 'jenkins/kubeconfig', secretValues: [
 							[envVar: 'DB_USERNAME', vaultKey: 'username'],
 							[envVar: 'DB_PASSWORD', vaultKey: 'password']
 						]]
