@@ -8,7 +8,6 @@ pipeline {
     }
     options {
 		disableConcurrentBuilds()
-        skipDefaultCheckout(true)
     }
     stages {
 		stage('Checkout') {
@@ -30,38 +29,13 @@ pipeline {
 			tools {
 				jdk 'temurin-24'
             }
-            steps {
-				script {
-					def jdkHome = tool name: 'temurin-24', type: 'jdk'
-					env.JAVA_HOME = jdkHome
-					env.PATH = "${jdkHome}/bin:${env.PATH}"
-					echo "Using JDK from: $jdkHome"
-				}
-				sh 'java -version'
-				sh 'javac -version'
-				sh './gradlew --version'
-			}
         }
-        stage('Grant execute permission to Gradle') {
+        stage('Gradle Build & Test') {
 			steps {
-				sh 'chmod +x ./gradlew'
-            }
-        }
-        //stage('Build Docker Image') {
-		//	steps {
-		//		script {
-		//			dockerImage = docker.build("${env.IMAGE_NAME}:${env.BUILD_NUMBER}")
-        //     }
-        //   }
-        //}
-        stage('Gradle Build') {
-			steps {
-				sh './gradlew clean build'
-            }
-        }
-        stage('Run tests') {
-			steps {
-				sh './gradlew test'
+				sh '''
+                    chmod +x ./gradlew
+                    ./gradlew clean build test
+                '''
             }
         }
         stage('Run SonarQube Analysis') {
@@ -79,10 +53,10 @@ pipeline {
             }
         }
 
-         stage('Docker Build and Push') {
-             steps {
-                 script {
-                     withVault([
+        stage('Docker Build and Push') {
+			steps {
+				script {
+					withVault([
                          vaultSecrets: [[
                              path: 'jenkins/docker',
                              engineVersion: 2,
@@ -92,7 +66,7 @@ pipeline {
                          vaultUrl: 'https://vault.leultewolde.com',
                          vaultCredentialId: 'vault-credentials'
                      ]) {
-                         sh '''
+						sh '''
                              echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
                              docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
                              docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
@@ -104,151 +78,21 @@ pipeline {
                      }
                  }
              }
-         }
-//         stage('Docker Build and Push') {
-//           steps {
-//             script {
-//               docker.image('docker:24.0.5-cli').inside('--privileged -v /var/run/docker.sock:/var/run/docker.sock') {
-//                 withVault([
-//                   vaultSecrets: [[
-//                     path: '/v1/secret/data/jenkins/docker',
-//                     engineVersion: 2,
-//                     secretValues: [
-//                       [envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
-//                       [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
-//                     ]
-//                   ]],
-//                   vaultUrl: 'https://vault.leultewolde.com',
-//                   vaultCredentialId: 'vault-credentials'
-//                 ]) {
-//                   sh '''
-//                     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
-//                     docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-//                     docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
-//                     docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-//                     docker push ${IMAGE_NAME}:${IMAGE_TAG}
-//                     docker push ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
-//                     docker push ${IMAGE_NAME}:latest
-//                   '''
-//                 }
-//               }
-//             }
-//           }
-//         }
-//        stage('Docker Build and Push') {
-//			steps {
-//				script {
-//					withVault([
-//					  vaultSecrets: [[
-//						path: 'jenkins/docker',
-//						engineVersion: 2,
-//						secretValues: [
-//						  [envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
-//						  [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
-//						]
-//					  ]],
-//					  vaultUrl: 'https://vault.leultewolde.com',
-//					  vaultCredentialId: 'vault-credentials'
-//					]) {
-//						sh '''
-//						  echo "Setting up Kaniko auth config..."
-//						  mkdir -p /tmp/kaniko
-//						  echo "{\"auths\":{\"https://${REGISTRY}\":{\"username\":\"$DOCKER_USERNAME\",\"password\":\"$DOCKER_PASSWORD\"}}}" > /tmp/kaniko/config.json
-//
-//						  echo "Building and pushing image using Kaniko..."
-//						  docker run --rm \
-//							-v $(pwd):/workspace \
-//							-v /tmp/kaniko:/kaniko/.docker \
-//							gcr.io/kaniko-project/executor:latest \
-//							--context /workspace \
-//							--dockerfile /workspace/Dockerfile \
-//							--destination $IMAGE_NAME:$IMAGE_TAG \
-//							--destination $IMAGE_NAME:$IMAGE_TAG_TIMESTAMP \
-//							--destination $IMAGE_NAME:latest \
-//							--verbosity info
-//						'''
-//              		}
-//            	}
-//          	}
-//        }
-
-		//stage('Docker Build and Push with Kaniko') {
-		//	steps {
-		//		container('kaniko') {
-		//			sh '''
-		//				/kaniko/executor \
-		//				  --context=dir://$(pwd) \
-		//				  --dockerfile=Dockerfile \
-		//				  --destination=$IMAGE_NAME:$IMAGE_TAG \
-		//				  --destination=$IMAGE_NAME:$IMAGE_TAG_TIMESTAMP \
-		//				  --destination=$IMAGE_NAME:latest \
-		//				  --verbosity=info
-		//	  		'''
-		//	}
-		//  }
-		//}
-		//stage('Build Image with Kaniko in K8s') {
-		//	steps {
-		//		withVault([
-		//			vaultSecrets: [[
-        //                    path: 'jenkins/kubeconfig',
-        //                    engineVersion: 2,
-        //                    secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
-        //            ]]
-		//		]) {
-		//			sh '''
-		//				echo "$KUBECONFIG_B64" | base64 -d > kubeconfig.yaml
-		//				export KUBECONFIG=$(pwd)/kubeconfig.yaml
-		//				kubectl apply -f kaniko-job.yaml
-		//				kubectl wait --for=condition=complete --timeout=300s job -n jenkins -l job-name=kaniko-build
-		//		  	'''
-		//	}
-		//  }
-		//}
-
-
-        stage('Promote') {
-			when {
-				expression { params.ENVIRONMENT != null }
-            }
-            steps {
-				script {
-					withVault([
-                        vaultSecrets: [[
-                            path: 'jenkins/kubeconfig',
-                            engineVersion: 2,
-                            secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
-                        ]],
-                        vaultUrl: 'https://vault.leultewolde.com',
-                        vaultCredentialId: 'vault-credentials'
-                    ]) {
-						sh '''
-                            mkdir -p ~/.kube
-                            echo "$KUBE_CONFIG" > ~/.kube/config
-                            chmod 600 ~/.kube/config
-                            kubectl set image deployment/km-ingredients-service km-ingredients-service=$IMAGE_NAME:$IMAGE_TAG -n $ENVIRONMENT
-                        '''
-                    }
-                }
-            }
         }
+
         stage('Deploy to K3s') {
 			steps {
 				script {
-					withVault([
-                        vaultSecrets: [[
-                            path: 'jenkins/kubeconfig',
-                            engineVersion: 2,
-                            secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
-                        ]],
-                        vaultUrl: 'https://vault.leultewolde.com',
-                        vaultCredentialId: 'vault-credentials'
-                    ]) {
+					withVaultSecrets('jenkins/kubeconfig') {
 						sh '''
+							echo "GIT_COMMIT = ${env.GIT_COMMIT}"
                             mkdir -p ~/.kube
                             echo "$KUBE_CONFIG" > ~/.kube/config
                             chmod 600 ~/.kube/config
-                            kubectl set image deployment/km-ingredients-service km-ingredients-service=$IMAGE_NAME:$IMAGE_TAG
+                            kubectl set image deployment/km-ingredients-service \
+                                km-ingredients-service=${IMAGE_NAME}:${IMAGE_TAG}
+                            kubectl set image deployment/km-ingredients-service \
+    							km-ingredients-service=$IMAGE_NAME:$IMAGE_TAG -n hidmo
                         '''
                     }
                 }
