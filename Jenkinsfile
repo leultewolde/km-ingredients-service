@@ -51,31 +51,49 @@ pipeline {
             }
         }
 
-        stage('Docker Build and Push') {
+        //stage('Docker Build and Push') {
+		//	steps {
+		//		script {
+		//			withVault([
+        //                 vaultSecrets: [[
+        //                     path: 'jenkins/docker',
+        //                     engineVersion: 2,
+        //                     secretValues: [[envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
+        //                                    [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']]
+        //                 ]],
+        //                 vaultUrl: 'https://vault.leultewolde.com',
+        //                 vaultCredentialId: 'vault-credentials'
+        //             ]) {
+		//				sh '''
+        //                     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
+        //                     docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+        //                     docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+        //                     docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+        //                     docker push ${IMAGE_NAME}:${IMAGE_TAG}
+        //                     docker push ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+        //                     docker push ${IMAGE_NAME}:latest
+        //                 '''
+        //             }
+        //         }
+        //     }
+        //}
+
+		stage('Docker Build & Push') {
 			steps {
 				script {
-					withVault([
-                         vaultSecrets: [[
-                             path: 'jenkins/docker',
-                             engineVersion: 2,
-                             secretValues: [[envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
-                                            [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']]
-                         ]],
-                         vaultUrl: 'https://vault.leultewolde.com',
-                         vaultCredentialId: 'vault-credentials'
-                     ]) {
+					withVaultSecrets('jenkins/docker') {
 						sh '''
-                             echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
-                             docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                             docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
-                             docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-                             docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                             docker push ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
-                             docker push ${IMAGE_NAME}:latest
-                         '''
-                     }
-                 }
-             }
+                            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
+                            docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                            docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+                            docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+                            docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                            docker push ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+                            docker push ${IMAGE_NAME}:latest
+                        '''
+                    }
+                }
+            }
         }
 
         stage('Deploy to K3s') {
@@ -108,4 +126,20 @@ pipeline {
                                    [pattern: '.propsfile', type: 'EXCLUDE']])
             }
     }
+}
+
+def withVaultSecrets(path) {
+	withVault([
+        vaultSecrets: [[
+            path: path,
+            engineVersion: 2,
+            secretValues: [
+                [envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
+                [envVar: 'DOCKER_PASSWORD', vaultKey: 'password'],
+                [envVar: 'KUBE_CONFIG', vaultKey: 'config']
+            ]
+        ]],
+        vaultUrl: 'https://vault.leultewolde.com',
+        vaultCredentialId: 'vault-credentials'
+    ])
 }
