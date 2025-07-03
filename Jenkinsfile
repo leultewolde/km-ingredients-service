@@ -30,6 +30,10 @@ pipeline {
 			tools {
 				jdk 'temurin-24'
             }
+            environment {
+				JAVA_HOME = tool name: 'temurin-24', type: 'jdk'
+				PATH = "${JAVA_HOME}/bin:${env.PATH}"
+			}
             steps {
 				echo 'JDK configured'
 				sh 'java -version'
