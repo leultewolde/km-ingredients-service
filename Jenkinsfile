@@ -1,7 +1,5 @@
 pipeline {
-	agent {
-		label 'docker-in-docker'
-    }
+	agent any
     environment {
 		IMAGE_NAME = 'ivtheforth/km-ingredients-service'
         IMAGE_TAG = "${env.GIT_COMMIT}"
