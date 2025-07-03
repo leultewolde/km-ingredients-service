@@ -1,5 +1,7 @@
 pipeline {
-	agent any
+	agent {
+		label 'docker-in-docker'
+    }
     environment {
 		IMAGE_NAME = 'ivtheforth/km-ingredients-service'
         IMAGE_TAG = "${env.GIT_COMMIT}"
@@ -39,6 +41,13 @@ pipeline {
 				sh 'chmod +x ./gradlew'
             }
         }
+        stage('Build Docker Image') {
+			steps {
+				script {
+					dockerImage = docker.build("${env.IMAGE_NAME}:${env.BUILD_NUMBER}")
+             }
+           }
+        }
         stage('Run tests') {
 			steps {
 				sh './gradlew test'
@@ -58,13 +67,7 @@ pipeline {
                 }
             }
         }
-//         stage('Build Docker Image') {
-//           steps {
-//             script {
-//               dockerImage = docker.build("${env.IMAGE_NAME}:${env.BUILD_NUMBER}")
-//             }
-//           }
-//         }
+
 //         stage('Docker Build and Push') {
 //             steps {
 //                 script {
