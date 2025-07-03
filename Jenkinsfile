@@ -125,37 +125,37 @@ pipeline {
 			steps {
 				script {
 					withVault([
-                vaultSecrets: [[
-                  path: '/v1/secret/data/jenkins/docker',
-                  vaultUrl: 'https://vault.leultewolde.com',
-                  vaultCredentialId: 'vault-root-token',
-                  engineVersion: 2,
-                  secretValues: [
-                    [envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
-                    [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
-                  ]
-                ]]
-              ]) {
+					  vaultSecrets: [[
+						path: 'jenkins/docker',
+						engineVersion: 2,
+						secretValues: [
+						  [envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
+						  [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
+						]
+					  ]],
+					  vaultUrl: 'https://vault.leultewolde.com',
+					  vaultCredentialId: 'vault-root-token'
+					]) {
 						sh '''
-                  echo "Setting up Kaniko auth config..."
-                  mkdir -p /tmp/kaniko
-                  echo "{\"auths\":{\"https://${REGISTRY}\":{\"username\":\"$DOCKER_USERNAME\",\"password\":\"$DOCKER_PASSWORD\"}}}" > /tmp/kaniko/config.json
+						  echo "Setting up Kaniko auth config..."
+						  mkdir -p /tmp/kaniko
+						  echo "{\"auths\":{\"https://${REGISTRY}\":{\"username\":\"$DOCKER_USERNAME\",\"password\":\"$DOCKER_PASSWORD\"}}}" > /tmp/kaniko/config.json
 
-                  echo "Building and pushing image using Kaniko..."
-                  docker run --rm \
-                    -v $(pwd):/workspace \
-                    -v /tmp/kaniko:/kaniko/.docker \
-                    gcr.io/kaniko-project/executor:latest \
-                    --context /workspace \
-                    --dockerfile /workspace/Dockerfile \
-                    --destination $IMAGE_NAME:$IMAGE_TAG \
-                    --destination $IMAGE_NAME:$IMAGE_TAG_TIMESTAMP \
-                    --destination $IMAGE_NAME:latest \
-                    --verbosity info
-                '''
-              }
-            }
-          }
+						  echo "Building and pushing image using Kaniko..."
+						  docker run --rm \
+							-v $(pwd):/workspace \
+							-v /tmp/kaniko:/kaniko/.docker \
+							gcr.io/kaniko-project/executor:latest \
+							--context /workspace \
+							--dockerfile /workspace/Dockerfile \
+							--destination $IMAGE_NAME:$IMAGE_TAG \
+							--destination $IMAGE_NAME:$IMAGE_TAG_TIMESTAMP \
+							--destination $IMAGE_NAME:latest \
+							--verbosity info
+						'''
+              		}
+            	}
+          	}
         }
 
 
