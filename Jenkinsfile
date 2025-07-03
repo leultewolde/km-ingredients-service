@@ -176,12 +176,11 @@ pipeline {
 		stage('Build Image with Kaniko in K8s') {
 			steps {
 				withVault([
-					vaultSecrets: [
-						[path: 'jenkins/kubeconfig', secretValues: [
-							[envVar: 'DB_USERNAME', vaultKey: 'username'],
-							[envVar: 'DB_PASSWORD', vaultKey: 'password']
-						]]
-					]
+					vaultSecrets: [[
+                            path: 'jenkins/kubeconfig',
+                            engineVersion: 2,
+                            secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
+                    ]]
 				]) {
 					sh '''
 						echo "$KUBECONFIG_B64" | base64 -d > kubeconfig.yaml
@@ -202,7 +201,7 @@ pipeline {
 				script {
 					withVault([
                         vaultSecrets: [[
-                            path: '/v1/secret/data/jenkins/kubeconfig',
+                            path: 'jenkins/kubeconfig',
                             engineVersion: 2,
                             secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
                         ]],
