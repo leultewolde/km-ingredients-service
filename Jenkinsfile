@@ -41,13 +41,13 @@ pipeline {
 				sh 'chmod +x ./gradlew'
             }
         }
-        stage('Build Docker Image') {
-			steps {
-				script {
-					dockerImage = docker.build("${env.IMAGE_NAME}:${env.BUILD_NUMBER}")
-             }
-           }
-        }
+        //stage('Build Docker Image') {
+		//	steps {
+		//		script {
+		//			dockerImage = docker.build("${env.IMAGE_NAME}:${env.BUILD_NUMBER}")
+        //     }
+        //   }
+        //}
         stage('Run tests') {
 			steps {
 				sh './gradlew test'
@@ -55,7 +55,7 @@ pipeline {
         }
         stage('Run SonarQube Analysis') {
 			steps {
-				withSonarQubeEnv('My SonarQube Server') {
+				withSonarQubeEnv('SonarQube Server') {
 					sh './gradlew sonar'
                 }
             }
@@ -68,32 +68,32 @@ pipeline {
             }
         }
 
-//         stage('Docker Build and Push') {
-//             steps {
-//                 script {
-//                     withVault([
-//                         vaultSecrets: [[
-//                             path: '/v1/secret/data/jenkins/docker',
-//                             engineVersion: 2,
-//                             secretValues: [[envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
-//                                            [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']]
-//                         ]],
-//                         vaultUrl: 'https://vault.leultewolde.com',
-//                         vaultCredentialId: 'vault-root-token'
-//                     ]) {
-//                         sh '''
-//                             echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
-//                             docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-//                             docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
-//                             docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-//                             docker push ${IMAGE_NAME}:${IMAGE_TAG}
-//                             docker push ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
-//                             docker push ${IMAGE_NAME}:latest
-//                         '''
-//                     }
-//                 }
-//             }
-//         }
+         stage('Docker Build and Push') {
+             steps {
+                 script {
+                     withVault([
+                         vaultSecrets: [[
+                             path: 'jenkins/docker',
+                             engineVersion: 2,
+                             secretValues: [[envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
+                                            [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']]
+                         ]],
+                         vaultUrl: 'https://vault.leultewolde.com',
+                         vaultCredentialId: 'vault-credentials'
+                     ]) {
+                         sh '''
+                             echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
+                             docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                             docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+                             docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+                             docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                             docker push ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+                             docker push ${IMAGE_NAME}:latest
+                         '''
+                     }
+                 }
+             }
+         }
 //         stage('Docker Build and Push') {
 //           steps {
 //             script {
@@ -108,7 +108,7 @@ pipeline {
 //                     ]
 //                   ]],
 //                   vaultUrl: 'https://vault.leultewolde.com',
-//                   vaultCredentialId: 'vault-root-token'
+//                   vaultCredentialId: 'vault-credentials'
 //                 ]) {
 //                   sh '''
 //                     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
@@ -137,7 +137,7 @@ pipeline {
 //						]
 //					  ]],
 //					  vaultUrl: 'https://vault.leultewolde.com',
-//					  vaultCredentialId: 'vault-root-token'
+//					  vaultCredentialId: 'vault-credentials'
 //					]) {
 //						sh '''
 //						  echo "Setting up Kaniko auth config..."
@@ -176,24 +176,24 @@ pipeline {
 		//	}
 		//  }
 		//}
-		stage('Build Image with Kaniko in K8s') {
-			steps {
-				withVault([
-					vaultSecrets: [[
-                            path: 'jenkins/kubeconfig',
-                            engineVersion: 2,
-                            secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
-                    ]]
-				]) {
-					sh '''
-						echo "$KUBECONFIG_B64" | base64 -d > kubeconfig.yaml
-						export KUBECONFIG=$(pwd)/kubeconfig.yaml
-						kubectl apply -f kaniko-job.yaml
-						kubectl wait --for=condition=complete --timeout=300s job -n jenkins -l job-name=kaniko-build
-				  	'''
-			}
-		  }
-		}
+		//stage('Build Image with Kaniko in K8s') {
+		//	steps {
+		//		withVault([
+		//			vaultSecrets: [[
+        //                    path: 'jenkins/kubeconfig',
+        //                    engineVersion: 2,
+        //                    secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
+        //            ]]
+		//		]) {
+		//			sh '''
+		//				echo "$KUBECONFIG_B64" | base64 -d > kubeconfig.yaml
+		//				export KUBECONFIG=$(pwd)/kubeconfig.yaml
+		//				kubectl apply -f kaniko-job.yaml
+		//				kubectl wait --for=condition=complete --timeout=300s job -n jenkins -l job-name=kaniko-build
+		//		  	'''
+		//	}
+		//  }
+		//}
 
 
         stage('Promote') {
@@ -209,7 +209,7 @@ pipeline {
                             secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
                         ]],
                         vaultUrl: 'https://vault.leultewolde.com',
-                        vaultCredentialId: 'vault-root-token'
+                        vaultCredentialId: 'vault-credentials'
                     ]) {
 						sh '''
                             mkdir -p ~/.kube
@@ -226,12 +226,12 @@ pipeline {
 				script {
 					withVault([
                         vaultSecrets: [[
-                            path: '/v1/secret/data/jenkins/kubeconfig',
+                            path: 'jenkins/kubeconfig',
                             engineVersion: 2,
                             secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
                         ]],
                         vaultUrl: 'https://vault.leultewolde.com',
-                        vaultCredentialId: 'vault-root-token'
+                        vaultCredentialId: 'vault-credentials'
                     ]) {
 						sh '''
                             mkdir -p ~/.kube
