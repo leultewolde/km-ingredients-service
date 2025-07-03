@@ -179,21 +179,42 @@ pipeline {
 //          	}
 //        }
 
-		stage('Docker Build and Push with Kaniko') {
+		//stage('Docker Build and Push with Kaniko') {
+		//	steps {
+		//		container('kaniko') {
+		//			sh '''
+		//				/kaniko/executor \
+		//				  --context=dir://$(pwd) \
+		//				  --dockerfile=Dockerfile \
+		//				  --destination=$IMAGE_NAME:$IMAGE_TAG \
+		//				  --destination=$IMAGE_NAME:$IMAGE_TAG_TIMESTAMP \
+		//				  --destination=$IMAGE_NAME:latest \
+		//				  --verbosity=info
+		//	  		'''
+		//	}
+		//  }
+		//}
+		stage('Build Image with Kaniko in K8s') {
 			steps {
-				container('kaniko') {
-					sh '''
-						/kaniko/executor \
-						  --context=dir://$(pwd) \
-						  --dockerfile=Dockerfile \
-						  --destination=$IMAGE_NAME:$IMAGE_TAG \
-						  --destination=$IMAGE_NAME:$IMAGE_TAG_TIMESTAMP \
-						  --destination=$IMAGE_NAME:latest \
-						  --verbosity=info
-			  		'''
+				withVault([
+			  vaultSecrets: [[
+				path: 'jenkins/kubeconfig',
+				engineVersion: 2,
+				secretValues: [[envVar: 'KUBECONFIG_B64', vaultKey: 'config']]
+			  ]],
+			  vaultUrl: 'https://vault.leultewolde.com',
+			  vaultCredentialId: 'vault-root-token'
+			]) {
+							sh '''
+				echo "$KUBECONFIG_B64" | base64 -d > kubeconfig.yaml
+				export KUBECONFIG=$(pwd)/kubeconfig.yaml
+				kubectl apply -f kaniko-job.yaml
+				kubectl wait --for=condition=complete --timeout=300s job -n jenkins -l job-name=kaniko-build
+			  '''
 			}
 		  }
 		}
+
 
         stage('Promote') {
 			when {

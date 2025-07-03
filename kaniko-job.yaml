@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: kaniko-build-
+  namespace: jenkins
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: kaniko
+          image: gcr.io/kaniko-project/executor:latest
+          args:
+            - --context=git://github.com/leultewolde/km-ingredients-service.git
+            - --dockerfile=Dockerfile
+            - --destination=docker.io/ivtheforth/km-ingredients-service:latest
+            - --verbosity=info
+          volumeMounts:
+            - name: docker-config
+              mountPath: /kaniko/.docker
+      volumes:
+        - name: docker-config
+          secret:
+            secretName: kaniko-docker-config
