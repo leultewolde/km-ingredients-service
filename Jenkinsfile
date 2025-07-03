@@ -176,20 +176,19 @@ pipeline {
 		stage('Build Image with Kaniko in K8s') {
 			steps {
 				withVault([
-			  vaultSecrets: [[
-				path: 'jenkins/kubeconfig',
-				engineVersion: 2,
-				secretValues: [[envVar: 'KUBECONFIG_B64', vaultKey: 'config']]
-			  ]],
-			  vaultUrl: 'https://vault.leultewolde.com',
-			  vaultCredentialId: 'vault-root-token'
-			]) {
-							sh '''
-				echo "$KUBECONFIG_B64" | base64 -d > kubeconfig.yaml
-				export KUBECONFIG=$(pwd)/kubeconfig.yaml
-				kubectl apply -f kaniko-job.yaml
-				kubectl wait --for=condition=complete --timeout=300s job -n jenkins -l job-name=kaniko-build
-			  '''
+					vaultSecrets: [
+						[path: '/v1/secret/data/jenkins/kubeconfig', secretValues: [
+							[envVar: 'DB_USERNAME', vaultKey: 'username'],
+							[envVar: 'DB_PASSWORD', vaultKey: 'password']
+						]]
+					]
+				]) {
+					sh '''
+						echo "$KUBECONFIG_B64" | base64 -d > kubeconfig.yaml
+						export KUBECONFIG=$(pwd)/kubeconfig.yaml
+						kubectl apply -f kaniko-job.yaml
+						kubectl wait --for=condition=complete --timeout=300s job -n jenkins -l job-name=kaniko-build
+				  	'''
 			}
 		  }
 		}
