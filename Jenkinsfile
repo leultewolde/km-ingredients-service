@@ -46,6 +46,11 @@ pipeline {
         //     }
         //   }
         //}
+        stage('Gradle Build') {
+			steps {
+				sh './gradlew clean build'
+            }
+        }
         stage('Run tests') {
 			steps {
 				sh './gradlew test'
