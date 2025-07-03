@@ -1,5 +1,26 @@
 pipeline {
-	agent any
+	agent {
+		kubernetes {
+			yaml """
+			apiVersion: v1
+			kind: Pod
+			spec:
+			  containers:
+			  - name: kaniko
+				image: gcr.io/kaniko-project/executor:latest
+				command:
+				- cat
+				tty: true
+				volumeMounts:
+				- name: kaniko-secret
+				  mountPath: /kaniko/.docker
+			  volumes:
+			  - name: kaniko-secret
+				secret:
+				  secretName: kaniko-docker-config
+			"""
+		}
+	}
     environment {
 		IMAGE_NAME = 'ivtheforth/km-ingredients-service'
         IMAGE_TAG = "${env.GIT_COMMIT}"
@@ -121,44 +142,58 @@ pipeline {
 //             }
 //           }
 //         }
-        stage('Docker Build and Push') {
+//        stage('Docker Build and Push') {
+//			steps {
+//				script {
+//					withVault([
+//					  vaultSecrets: [[
+//						path: 'jenkins/docker',
+//						engineVersion: 2,
+//						secretValues: [
+//						  [envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
+//						  [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
+//						]
+//					  ]],
+//					  vaultUrl: 'https://vault.leultewolde.com',
+//					  vaultCredentialId: 'vault-root-token'
+//					]) {
+//						sh '''
+//						  echo "Setting up Kaniko auth config..."
+//						  mkdir -p /tmp/kaniko
+//						  echo "{\"auths\":{\"https://${REGISTRY}\":{\"username\":\"$DOCKER_USERNAME\",\"password\":\"$DOCKER_PASSWORD\"}}}" > /tmp/kaniko/config.json
+//
+//						  echo "Building and pushing image using Kaniko..."
+//						  docker run --rm \
+//							-v $(pwd):/workspace \
+//							-v /tmp/kaniko:/kaniko/.docker \
+//							gcr.io/kaniko-project/executor:latest \
+//							--context /workspace \
+//							--dockerfile /workspace/Dockerfile \
+//							--destination $IMAGE_NAME:$IMAGE_TAG \
+//							--destination $IMAGE_NAME:$IMAGE_TAG_TIMESTAMP \
+//							--destination $IMAGE_NAME:latest \
+//							--verbosity info
+//						'''
+//              		}
+//            	}
+//          	}
+//        }
+
+		stage('Docker Build and Push with Kaniko') {
 			steps {
-				script {
-					withVault([
-					  vaultSecrets: [[
-						path: 'jenkins/docker',
-						engineVersion: 2,
-						secretValues: [
-						  [envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
-						  [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
-						]
-					  ]],
-					  vaultUrl: 'https://vault.leultewolde.com',
-					  vaultCredentialId: 'vault-root-token'
-					]) {
-						sh '''
-						  echo "Setting up Kaniko auth config..."
-						  mkdir -p /tmp/kaniko
-						  echo "{\"auths\":{\"https://${REGISTRY}\":{\"username\":\"$DOCKER_USERNAME\",\"password\":\"$DOCKER_PASSWORD\"}}}" > /tmp/kaniko/config.json
-
-						  echo "Building and pushing image using Kaniko..."
-						  docker run --rm \
-							-v $(pwd):/workspace \
-							-v /tmp/kaniko:/kaniko/.docker \
-							gcr.io/kaniko-project/executor:latest \
-							--context /workspace \
-							--dockerfile /workspace/Dockerfile \
-							--destination $IMAGE_NAME:$IMAGE_TAG \
-							--destination $IMAGE_NAME:$IMAGE_TAG_TIMESTAMP \
-							--destination $IMAGE_NAME:latest \
-							--verbosity info
-						'''
-              		}
-            	}
-          	}
-        }
-
-
+				container('kaniko') {
+					sh '''
+						/kaniko/executor \
+						  --context=dir://$(pwd) \
+						  --dockerfile=Dockerfile \
+						  --destination=$IMAGE_NAME:$IMAGE_TAG \
+						  --destination=$IMAGE_NAME:$IMAGE_TAG_TIMESTAMP \
+						  --destination=$IMAGE_NAME:latest \
+						  --verbosity=info
+			  		'''
+			}
+		  }
+		}
 
         stage('Promote') {
 			when {
