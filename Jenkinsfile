@@ -51,55 +51,45 @@ pipeline {
             }
         }
 
-        //stage('Docker Build and Push') {
-		//	steps {
-		//		script {
-		//			withVault([
-        //                 vaultSecrets: [[
-        //                     path: 'jenkins/docker',
-        //                     engineVersion: 2,
-        //                     secretValues: [[envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
-        //                                    [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']]
-        //                 ]],
-        //                 vaultUrl: 'https://vault.leultewolde.com',
-        //                 vaultCredentialId: 'vault-credentials'
-        //             ]) {
-		//				sh '''
-        //                     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
-        //                     docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-        //                     docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
-        //                     docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-        //                     docker push ${IMAGE_NAME}:${IMAGE_TAG}
-        //                     docker push ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
-        //                     docker push ${IMAGE_NAME}:latest
-        //                 '''
-        //             }
-        //         }
-        //     }
-        //}
-
-		stage('Docker Build & Push') {
+        stage('Docker Build and Push') {
 			steps {
 				script {
-					withVaultSecrets('jenkins/docker') {
+					withVault([
+                         vaultSecrets: [[
+                             path: 'jenkins/docker',
+                             engineVersion: 2,
+                             secretValues: [[envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
+                                            [envVar: 'DOCKER_PASSWORD', vaultKey: 'password']]
+                         ]],
+                         vaultUrl: 'https://vault.leultewolde.com',
+                         vaultCredentialId: 'vault-credentials'
+                     ]) {
 						sh '''
-                            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
-                            docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                            docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
-                            docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-                            docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                            docker push ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
-                            docker push ${IMAGE_NAME}:latest
-                        '''
-                    }
-                }
-            }
+                             echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ${REGISTRY}
+                             docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                             docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+                             docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+                             docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                             docker push ${IMAGE_NAME}:${IMAGE_TAG_TIMESTAMP}
+                             docker push ${IMAGE_NAME}:latest
+                         '''
+                     }
+                 }
+             }
         }
 
         stage('Deploy to K3s') {
 			steps {
 				script {
-					withVaultSecrets('jenkins/kubeconfig') {
+					withVault([
+                         vaultSecrets: [[
+                             path: 'jenkins/kubeconfig',
+                             engineVersion: 2,
+                             secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
+                         ]],
+                         vaultUrl: 'https://vault.leultewolde.com',
+                         vaultCredentialId: 'vault-credentials'
+                     ]) {
 						sh '''
 							echo "GIT_COMMIT = ${env.GIT_COMMIT}"
                             mkdir -p ~/.kube
