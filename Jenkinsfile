@@ -30,16 +30,17 @@ pipeline {
 			tools {
 				jdk 'temurin-24'
             }
-            environment {
-				JAVA_HOME = tool name: 'temurin-24', type: 'jdk'
-				PATH = "${JAVA_HOME}/bin:${env.PATH}"
-			}
             steps {
-				echo 'JDK configured'
+				script {
+					def jdkHome = tool name: 'temurin-24', type: 'jdk'
+					env.JAVA_HOME = jdkHome
+					env.PATH = "${jdkHome}/bin:${env.PATH}"
+					echo "Using JDK from: $jdkHome"
+				}
 				sh 'java -version'
 				sh 'javac -version'
 				sh './gradlew --version'
-            }
+			}
         }
         stage('Grant execute permission to Gradle') {
 			steps {
