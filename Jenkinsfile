@@ -82,28 +82,33 @@ pipeline {
 			steps {
 				script {
 					withVault([
-                         vaultSecrets: [[
-                             path: 'jenkins/kubeconfig',
-                             engineVersion: 2,
-                             secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
-                         ]],
-                         vaultUrl: 'https://vault.leultewolde.com',
-                         vaultCredentialId: 'vault-credentials'
-                     ]) {
-						sh '''
+						vaultSecrets: [[
+							path: 'jenkins/kubeconfig',
+							engineVersion: 2,
+							secretValues: [[envVar: 'KUBE_CONFIG', vaultKey: 'config']]
+						]],
+						vaultUrl: 'https://vault.leultewolde.com',
+						vaultCredentialId: 'vault-credentials'
+					]) {
+						sh """
 							echo "GIT_COMMIT = ${env.GIT_COMMIT}"
-                            mkdir -p ~/.kube
-                            echo "$KUBE_CONFIG" > ~/.kube/config
-                            chmod 600 ~/.kube/config
-                            kubectl set image deployment/km-ingredients-service \
-                                km-ingredients-service=${IMAGE_NAME}:${IMAGE_TAG}
-                            kubectl set image deployment/km-ingredients-service \
-    							km-ingredients-service=$IMAGE_NAME:$IMAGE_TAG -n hidmo
-                        '''
-                    }
-                }
-            }
-        }
+							mkdir -p ~/.kube
+							echo "$KUBE_CONFIG" > ~/.kube/config
+							chmod 600 ~/.kube/config
+
+							echo "Updating deployment in default namespace..."
+							kubectl set image deployment/km-ingredients-service \
+								km-ingredients-service=${env.IMAGE_NAME}:${env.IMAGE_TAG} || true
+
+							echo "Updating deployment in 'hidmo' namespace..."
+							kubectl set image deployment/km-ingredients-service \
+								km-ingredients-service=${env.IMAGE_NAME}:${env.IMAGE_TAG} -n hidmo || true
+						"""
+            		}
+        		}
+    		}
+		}
+
     }
     post {
 		// Clean after build
