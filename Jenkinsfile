@@ -1,24 +1,24 @@
 pipeline {
-    agent any
+	agent any
     environment {
-        IMAGE_NAME = 'ivtheforth/km-ingredients-service'
+		IMAGE_NAME = 'ivtheforth/km-ingredients-service'
         IMAGE_TAG = "${env.GIT_COMMIT}"
         IMAGE_TAG_TIMESTAMP = "${env.BUILD_ID}-${env.BUILD_NUMBER}-${env.GIT_COMMIT}"
         REGISTRY = 'docker.io'
     }
     options {
-        disableConcurrentBuilds()
+		disableConcurrentBuilds()
         skipDefaultCheckout(true)
     }
     stages {
-        stage('Checkout') {
-            steps {
-                script {
-                    try {
-                        deleteDir()
+		stage('Checkout') {
+			steps {
+				script {
+					try {
+						deleteDir()
                         checkout scm
                     } catch (err) {
-                        echo "Git checkout failed, retrying with forced cleanup..."
+						echo "Git checkout failed, retrying with forced cleanup..."
                         deleteDir()
                         checkout scm
                     }
@@ -27,34 +27,34 @@ pipeline {
             }
         }
         stage('Set up JDK') {
-            tools {
-                jdk 'temurin-24'
+			tools {
+				jdk 'temurin-24'
             }
             steps {
-                echo 'JDK configured'
+				echo 'JDK configured'
             }
         }
         stage('Grant execute permission to Gradle') {
-            steps {
-                sh 'chmod +x ./gradlew'
+			steps {
+				sh 'chmod +x ./gradlew'
             }
         }
         stage('Run tests') {
-            steps {
-                sh './gradlew test'
+			steps {
+				sh './gradlew test'
             }
         }
         stage('Run SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('My SonarQube Server') {
-                    sh './gradlew sonar'
+			steps {
+				withSonarQubeEnv('My SonarQube Server') {
+					sh './gradlew sonar'
                 }
             }
         }
         stage('Wait for SonarQube Quality Gate') {
-            steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+			steps {
+				timeout(time: 5, unit: 'MINUTES') {
+					waitForQualityGate abortPipeline: true
                 }
             }
         }
@@ -122,13 +122,13 @@ pipeline {
 //           }
 //         }
         stage('Docker Build and Push') {
-          steps {
-            script {
-              withVault([
+			steps {
+				script {
+					withVault([
                 vaultSecrets: [[
                   path: '/v1/secret/data/jenkins/docker',
                   vaultUrl: 'https://vault.leultewolde.com',
-                  vaultCredentialId: 'vault-root-token'
+                  vaultCredentialId: 'vault-root-token',
                   engineVersion: 2,
                   secretValues: [
                     [envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
@@ -136,7 +136,7 @@ pipeline {
                   ]
                 ]]
               ]) {
-                sh '''
+						sh '''
                   echo "Setting up Kaniko auth config..."
                   mkdir -p /tmp/kaniko
                   echo "{\"auths\":{\"https://${REGISTRY}\":{\"username\":\"$DOCKER_USERNAME\",\"password\":\"$DOCKER_PASSWORD\"}}}" > /tmp/kaniko/config.json
@@ -161,12 +161,12 @@ pipeline {
 
 
         stage('Promote') {
-            when {
-                expression { params.ENVIRONMENT != null }
+			when {
+				expression { params.ENVIRONMENT != null }
             }
             steps {
-                script {
-                    withVault([
+				script {
+					withVault([
                         vaultSecrets: [[
                             path: '/v1/secret/data/jenkins/kubeconfig',
                             engineVersion: 2,
@@ -175,7 +175,7 @@ pipeline {
                         vaultUrl: 'https://vault.leultewolde.com',
                         vaultCredentialId: 'vault-root-token'
                     ]) {
-                        sh '''
+						sh '''
                             mkdir -p ~/.kube
                             echo "$KUBE_CONFIG" > ~/.kube/config
                             chmod 600 ~/.kube/config
@@ -186,9 +186,9 @@ pipeline {
             }
         }
         stage('Deploy to K3s') {
-            steps {
-                script {
-                    withVault([
+			steps {
+				script {
+					withVault([
                         vaultSecrets: [[
                             path: '/v1/secret/data/jenkins/kubeconfig',
                             engineVersion: 2,
@@ -197,7 +197,7 @@ pipeline {
                         vaultUrl: 'https://vault.leultewolde.com',
                         vaultCredentialId: 'vault-root-token'
                     ]) {
-                        sh '''
+						sh '''
                             mkdir -p ~/.kube
                             echo "$KUBE_CONFIG" > ~/.kube/config
                             chmod 600 ~/.kube/config
@@ -209,9 +209,9 @@ pipeline {
         }
     }
     post {
-            // Clean after build
+		// Clean after build
             always {
-                cleanWs(cleanWhenNotBuilt: false,
+			cleanWs(cleanWhenNotBuilt: false,
                         deleteDirs: true,
                         disableDeferredWipeout: true,
                         notFailBuild: true,
