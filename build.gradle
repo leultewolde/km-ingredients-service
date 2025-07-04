@@ -24,6 +24,7 @@ configurations {
 
 repositories {
     mavenCentral()
+    maven { url 'https://splunk.jfrog.io/splunk/ext-release-local' }
 }
 
 dependencyManagement {
