@@ -6,7 +6,7 @@
         <appender-ref ref="CONSOLE" />
     </root>
 
-    <springProfile name="prod">
+    <springProfile name="prod,dev">
         <property name="SPLUNK_URL" value="${splunk.url}" />
         <property name="SPLUNK_TOKEN" value="${splunk.token}" />
         <appender name="SPLUNK" class="com.splunk.logging.HttpEventCollectorLogbackAppender">
