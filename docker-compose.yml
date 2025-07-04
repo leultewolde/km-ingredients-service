@@ -2,6 +2,7 @@ services:
   km-ingredients-service:
     build: .
     container_name: km-ingredients-service
+
     ports:
       - "8001:8001"
     depends_on:
@@ -9,13 +10,15 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
-      DB_URL: ${DB_URL}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      MINIO_URL: ${MINIO_URL}
-      MINIO_ACCESS_NAME: ${MINIO_ACCESS_NAME}
-      MINIO_ACCESS_SECRET: ${MINIO_ACCESS_SECRET}
-      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
+#      DB_URL: ${DB_URL}
+#      DB_USER: ${DB_USER}
+#      DB_PASSWORD: ${DB_PASSWORD}
+#      MINIO_URL: ${MINIO_URL}
+#      MINIO_ACCESS_NAME: ${MINIO_ACCESS_NAME}
+#      MINIO_ACCESS_SECRET: ${MINIO_ACCESS_SECRET}
+#      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
+      NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
+      VAULT_TOKEN: ${VAULT_TOKEN}
 
   postgres:
     image: postgres:16
