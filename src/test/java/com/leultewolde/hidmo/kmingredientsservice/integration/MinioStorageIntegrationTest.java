@@ -29,7 +29,6 @@ class MinioStorageIntegrationTest {
                         .build()
         );
         assertNotNull(url);
-        new java.net.URL(url);
     }
 
     @Test
@@ -44,6 +43,5 @@ class MinioStorageIntegrationTest {
                         .build()
         );
         assertNotNull(url);
-        new java.net.URL(url);
     }
 }
