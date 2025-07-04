@@ -5,5 +5,5 @@ buildAndDeployApp([
     namespace: 'hidmo',
     deployment: 'km-ingredients-service',
     container: 'km-ingredients-service',
-    newRelicAppId: '6883287'
+    newRelicAppId: '490970453'
 ])
