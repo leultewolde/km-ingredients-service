@@ -29,7 +29,10 @@ class GlobalExceptionHandlerTest {
     }
 
     @SuppressWarnings("unused")
-    private void dummyMethod(String arg) {}
+    private void dummyMethod(String arg) {
+        // This method is just a placeholder to get a MethodParameter for testing
+        // It does not need to do anything.
+    }
 
     @Test
     void handleValidationErrors_returnsBadRequest() throws NoSuchMethodException {
