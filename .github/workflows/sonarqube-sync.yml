@@ -13,13 +13,16 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_HOST: ${{ secrets.SONAR_HOST }}
       PROJECT_KEY: hidmo-km-ingredients-service
+      GH_TOKEN: ${{ secrets.GH_PAT }}
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Install GitHub CLI and jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq gh
 
       - name: Fetch and create issues
         run: |
@@ -49,6 +52,3 @@ jobs:
             echo "Creating GitHub issue for $KEY"
             gh issue create --title "$TITLE" --body "$ISSUE_BODY" --label "sonarqube"
           done
-
-        env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}  # GitHub provides this automatically
