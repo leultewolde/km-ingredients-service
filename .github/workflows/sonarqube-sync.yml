@@ -24,6 +24,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq gh
 
+      - name: Authenticate GitHub CLI
+        run: echo "${GH_TOKEN}" | gh auth login --with-token
+
       - name: Fetch and create issues
         run: |
           echo "Fetching existing SonarQube-related GitHub issues..."
