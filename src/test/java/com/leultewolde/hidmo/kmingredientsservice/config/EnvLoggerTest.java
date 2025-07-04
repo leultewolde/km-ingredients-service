@@ -36,7 +36,7 @@ class EnvLoggerTest {
         appender.start();
         logger.addAppender(appender);
 
-        new EnvLogger(env).run(new DefaultApplicationArguments(new String[0]));
+        new EnvLogger(env).run(new DefaultApplicationArguments());
 
         logger.detachAppender(appender);
         List<ILoggingEvent> logs = appender.list;

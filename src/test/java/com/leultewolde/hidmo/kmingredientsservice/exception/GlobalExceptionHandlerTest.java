@@ -45,6 +45,7 @@ class GlobalExceptionHandlerTest {
 
         ResponseEntity<Map<String, String>> response = handler.handleValidationErrors(ex);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
         assertEquals("must not be blank", response.getBody().get("name"));
     }
 
@@ -59,6 +60,7 @@ class GlobalExceptionHandlerTest {
 
         ResponseEntity<Map<String, String>> response = handler.handleConstraintViolation(ex);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
         assertEquals("must be positive", response.getBody().get("quantity"));
     }
 
@@ -67,6 +69,7 @@ class GlobalExceptionHandlerTest {
         StorageException ex = new StorageException("boom");
         ResponseEntity<Map<String, String>> response = handler.handleStorage(ex);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
         assertEquals("boom", response.getBody().get("error"));
     }
 
@@ -75,6 +78,7 @@ class GlobalExceptionHandlerTest {
         ResourceNotFoundException ex = new ResourceNotFoundException("Ingredient", "id", 1);
         ResponseEntity<Map<String, String>> response = handler.handleResourceNotFound(ex);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
         assertEquals(ex.getMessage(), response.getBody().get("error"));
     }
 
@@ -83,6 +87,7 @@ class GlobalExceptionHandlerTest {
         Exception ex = new Exception("generic");
         ResponseEntity<Map<String, String>> response = handler.handleGeneric(ex);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
         assertEquals("generic", response.getBody().get("error"));
     }
 }
