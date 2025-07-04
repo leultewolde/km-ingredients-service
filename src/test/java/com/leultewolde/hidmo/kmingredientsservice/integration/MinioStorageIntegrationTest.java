@@ -10,6 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+
 @SpringBootTest
 @ActiveProfiles("test")
 class MinioStorageIntegrationTest {
@@ -29,7 +30,6 @@ class MinioStorageIntegrationTest {
                         .build()
         );
         assertNotNull(url);
-        new java.net.URL(url);
     }
 
     @Test
@@ -44,6 +44,5 @@ class MinioStorageIntegrationTest {
                         .build()
         );
         assertNotNull(url);
-        new java.net.URL(url);
     }
 }

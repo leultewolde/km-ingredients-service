@@ -24,7 +24,7 @@ class EnvLoggerTest {
     }
 
     @Test
-    void run_logsExpectedVariables() throws Exception {
+    void run_logsExpectedVariables() {
         when(env.getProperty("SPRING_PROFILES_ACTIVE")).thenReturn("test");
         when(env.getProperty("DB_URL")).thenReturn("jdbc:h2:mem:testdb");
         when(env.getProperty("DB_USER")).thenReturn("sa");
@@ -36,7 +36,7 @@ class EnvLoggerTest {
         appender.start();
         logger.addAppender(appender);
 
-        new EnvLogger(env).run(new DefaultApplicationArguments(new String[0]));
+        new EnvLogger(env).run(new DefaultApplicationArguments());
 
         logger.detachAppender(appender);
         List<ILoggingEvent> logs = appender.list;
