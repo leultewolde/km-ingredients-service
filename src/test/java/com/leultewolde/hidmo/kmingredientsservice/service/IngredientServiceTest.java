@@ -82,8 +82,17 @@ class IngredientServiceTest {
     @Test
     void shouldDeleteIngredient() {
         UUID id = UUID.randomUUID();
+        when(repo.existsById(id)).thenReturn(true);
         service.delete(id);
         verify(repo).deleteById(id);
+    }
+
+    @Test
+    void deleteUnknownIngredientThrows() {
+        UUID id = UUID.randomUUID();
+        when(repo.existsById(id)).thenReturn(false);
+
+        assertThrows(RuntimeException.class, () -> service.delete(id));
     }
 }
 

@@ -78,6 +78,22 @@ class PreparedFoodControllerIT {
                 .andExpect(jsonPath("$").isArray());
     }
 
+    @Test
+    void createWithUnknownIngredientFails() throws Exception {
+        PreparedFoodRequestDTO dto = new PreparedFoodRequestDTO(
+                "Mystery", new BigDecimal("1"), "jar",
+                LocalDate.now(), LocalDate.now().plusDays(1),
+                "Freezer", IngredientStatus.AVAILABLE, null,
+                List.of(new IngredientUsageRequestDTO(UUID.randomUUID(), BigDecimal.ONE))
+        );
+
+        mockMvc.perform(post("/v1/prepared-foods")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error", containsString("Ingredient")));
+    }
+
 
     @Test
     void shouldAllowCorsPreflightRequest() throws Exception {

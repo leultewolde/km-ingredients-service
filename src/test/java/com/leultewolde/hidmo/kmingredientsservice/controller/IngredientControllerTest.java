@@ -1,6 +1,7 @@
 package com.leultewolde.hidmo.kmingredientsservice.controller;
 
 import com.leultewolde.hidmo.kmingredientsservice.dto.response.IngredientResponseDTO;
+import com.leultewolde.hidmo.kmingredientsservice.exception.ResourceNotFoundException;
 import com.leultewolde.hidmo.kmingredientsservice.service.IngredientService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +80,7 @@ class IngredientControllerTest {
     @Test
     void shouldReturnNotFoundWhenIngredientByIdNotExists() throws Exception {
         UUID id = UUID.randomUUID();
-        when(service.getById(id)).thenReturn(null);
+        when(service.getById(id)).thenThrow(new ResourceNotFoundException("Ingredient","id",id));
 
         mockMvc.perform(get("/v1/ingredients/" + id))
                 .andExpect(status().isNotFound());
@@ -103,7 +104,7 @@ class IngredientControllerTest {
     @Test
     void shouldReturnNotFoundWhenBarcodeNotExists() throws Exception {
         String barcode = "000000";
-        when(service.getByBarcode(barcode)).thenReturn(null);
+        when(service.getByBarcode(barcode)).thenThrow(new ResourceNotFoundException("Ingredient","barcode",barcode));
 
         mockMvc.perform(get("/v1/ingredients/by-barcode/" + barcode))
                 .andExpect(status().isNotFound());

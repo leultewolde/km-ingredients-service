@@ -3,7 +3,7 @@ package com.leultewolde.hidmo.kmingredientsservice.mapper.context.impl;
 import com.leultewolde.hidmo.kmingredientsservice.mapper.context.IngredientResolver;
 import com.leultewolde.hidmo.kmingredientsservice.model.Ingredient;
 import com.leultewolde.hidmo.kmingredientsservice.repository.IngredientRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.leultewolde.hidmo.kmingredientsservice.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -45,11 +45,11 @@ class IngredientResolverImplTest {
 
         when(repository.findById(id)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> {
             resolver.resolve(id);
         });
 
-        assertTrue(ex.getMessage().contains("Ingredient not found"));
+        assertTrue(ex.getMessage().contains("Ingredient"));
         verify(repository).findById(id);
     }
 }
