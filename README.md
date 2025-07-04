@@ -4,7 +4,7 @@ This service manages ingredients and prepared foods. After starting the applicat
 
 ## New Relic configuration
 
-The application uses the New Relic Java agent located in the `newrelic` directory. Provide your license key via the `NEW_RELIC_LICENSE_KEY` environment variable or `.env` file. The included `newrelic.yml` loads the key from that variable.
+The application uses the New Relic Java agent located in the `newrelic` directory. During container start-up the `docker-entrypoint.sh` script retrieves the `NEW_RELIC_LICENSE_KEY` from Hashicorp Vault (using the `VAULT_TOKEN`) and exports it for the agent. The included `newrelic.yml` reads the key from this environment variable.
 
 ## Production secrets
 
