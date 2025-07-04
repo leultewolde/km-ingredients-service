@@ -4,5 +4,6 @@ buildAndDeployApp([
     imageName: 'ivtheforth/km-ingredients-service',
     namespace: 'hidmo',
     deployment: 'km-ingredients-service',
-    container: 'km-ingredients-service'
+    container: 'km-ingredients-service',
+    newRelicAppId: '6883287'
 ])

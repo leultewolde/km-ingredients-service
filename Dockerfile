@@ -6,5 +6,6 @@ RUN gradle clean bootJar --no-daemon
 FROM eclipse-temurin:24-jre
 WORKDIR /app
 COPY --from=build /app/build/libs/km-ingredients-service-*.jar app.jar
+COPY newrelic/ /newrelic/
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-javaagent:/newrelic/newrelic.jar", "-jar", "app.jar"]
