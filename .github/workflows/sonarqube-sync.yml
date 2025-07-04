@@ -51,4 +51,4 @@ jobs:
           done
 
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub provides this automatically
+          GH_TOKEN: ${{ secrets.GH_PAT }}  # GitHub provides this automatically
