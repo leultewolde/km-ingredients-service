@@ -24,6 +24,9 @@ configurations {
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://splunk.jfrog.io/splunk/ext-releases-local"
+    }
 }
 
 dependencyManagement {
@@ -44,7 +47,7 @@ dependencies {
     implementation("io.minio:minio:8.5.17")
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     implementation 'org.springframework.cloud:spring-cloud-starter-vault-config'
-    implementation 'com.splunk.logging:splunk-library-javalogging:1.11.3'
+    implementation 'com.splunk.logging:splunk-library-javalogging:1.9.0'
     annotationProcessor 'org.projectlombok:lombok'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
