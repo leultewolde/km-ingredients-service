@@ -46,6 +46,9 @@ public class IngredientService {
 
     @Transactional
     public void delete(UUID id) {
+        if (!repo.existsById(id)) {
+            throw new ResourceNotFoundException("Ingredient", "id", id);
+        }
         repo.deleteById(id);
     }
 }

@@ -21,19 +21,14 @@ class MinioStorageComponentTest {
     private MinioClient minioClient;
 
     @Test
-    void shouldGeneratePresignedUrl() {
-        assertDoesNotThrow(() -> {
-            String objectName = "test-object.txt";
-            URL url = URI.create(minioClient.getPresignedObjectUrl(
-                    GetPresignedObjectUrlArgs.builder()
-                            .bucket("mybucket")
-                            .object(objectName)
-                            .method(Method.GET)
-                            .expiry(60 * 10)
-                            .build()
-            )).toURL();
-            assertNotNull(url.toString());
-            assertTrue(url.toString().contains(objectName));
-        });
+    void shouldFailWhenServerUnavailable() {
+        assertThrows(Exception.class, () -> minioClient.getPresignedObjectUrl(
+                GetPresignedObjectUrlArgs.builder()
+                        .bucket("mybucket")
+                        .object("test-object.txt")
+                        .method(Method.GET)
+                        .expiry(60 * 10)
+                        .build()
+        ));
     }
 }

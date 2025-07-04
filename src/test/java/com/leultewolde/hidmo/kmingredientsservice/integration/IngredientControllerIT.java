@@ -66,6 +66,47 @@ class IngredientControllerIT {
     }
 
     @Test
+    void shouldDeleteIngredient() throws Exception {
+        String id = mockMvc.perform(post("/v1/ingredients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(sampleDTO())))
+                .andReturn().getResponse().getContentAsString().replace("\"", "");
+
+        mockMvc.perform(delete("/v1/ingredients/" + id))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/v1/ingredients/" + id))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteUnknownIngredientReturns404() throws Exception {
+        mockMvc.perform(delete("/v1/ingredients/123e4567-e89b-12d3-a456-426614174000"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error", containsString("not found")));
+    }
+
+    @Test
+    void getByBarcodeReturnsIngredient() throws Exception {
+        IngredientRequestDTO dto = sampleDTO();
+        String id = mockMvc.perform(post("/v1/ingredients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andReturn().getResponse().getContentAsString().replace("\"", "");
+
+        mockMvc.perform(get("/v1/ingredients/by-barcode/" + dto.getBarcode()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(id)));
+    }
+
+    @Test
+    void getByBarcodeNotFound() throws Exception {
+        mockMvc.perform(get("/v1/ingredients/by-barcode/UNKNOWN"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error", containsString("not found")));
+    }
+
+    @Test
     void shouldAllowCorsPreflightRequest() throws Exception {
         mockMvc.perform(options("/v1/ingredients")
                         .header("Origin", "http://example.com")

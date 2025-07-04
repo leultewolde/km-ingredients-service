@@ -25,14 +25,12 @@ public class IngredientController {
 
     @GetMapping("/{id}")
     public ResponseEntity<IngredientResponseDTO> getById(@PathVariable UUID id) {
-        IngredientResponseDTO dto = service.getById(id);
-        return dto != null ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
+        return ResponseEntity.ok(service.getById(id));
     }
 
     @GetMapping("/by-barcode/{barcode}")
     public ResponseEntity<IngredientResponseDTO> getByBarcode(@PathVariable String barcode) {
-        IngredientResponseDTO dto = service.getByBarcode(barcode);
-        return dto != null ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
+        return ResponseEntity.ok(service.getByBarcode(barcode));
     }
 
     @PostMapping
