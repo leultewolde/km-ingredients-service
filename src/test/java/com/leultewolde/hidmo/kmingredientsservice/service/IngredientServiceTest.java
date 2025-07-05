@@ -71,10 +71,10 @@ class IngredientServiceTest {
         ing.setId(UUID.randomUUID());
         ing.setName("Salt");
 
-        when(repo.findAll()).thenReturn(List.of(ing));
+        when(repo.findAll(any(org.springframework.data.domain.Pageable.class))).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(ing)));
         when(mapper.toDTO(any())).thenReturn(dto);
 
-        List<IngredientResponseDTO> result = service.getAll();
+        List<IngredientResponseDTO> result = service.getAll(org.springframework.data.domain.Pageable.unpaged());
         assertEquals(1, result.size());
         assertEquals("Salt", result.getFirst().getName());
     }

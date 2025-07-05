@@ -31,7 +31,7 @@ class IngredientControllerTest {
         IngredientResponseDTO dto = new IngredientResponseDTO();
         dto.setName("Sugar");
 
-        when(service.getAll()).thenReturn(List.of(dto));
+        when(service.getAll(any(org.springframework.data.domain.Pageable.class))).thenReturn(List.of(dto));
 
         mockMvc.perform(get("/v1/ingredients"))
                 .andExpect(status().isOk())
