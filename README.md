@@ -12,4 +12,4 @@ When running with the `prod` profile, secret values are retrieved from the Hashi
 
 ## Splunk logging
 
-When the `prod` profile is active, logs are also sent to Splunk using the HTTP Event Collector. The Splunk instance is available at `http://10.0.0.222:8000/`. Store the `SPLUNK_TOKEN` in Vault so it can be injected at runtime.
+When the `prod` or `dev` profile is active, logs are also sent to Splunk using the HTTP Event Collector. The Splunk instance is available at `http://10.0.0.222:8088`. Store the `SPLUNK_TOKEN` in Vault so it can be injected at runtime.
