@@ -44,7 +44,7 @@ public class SplunkLoggingConfig {
         splunkAppender.start();
 
         // Attach Splunk appender to root logger
-        Logger rootLogger = context.getLogger(Logger.ROOT_LOGGER_NAME);
+        Logger rootLogger = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
         rootLogger.addAppender(splunkAppender);
 
         rootLogger.info("✅ Splunk appender added to root logger with URL: {}", splunkUrl);
