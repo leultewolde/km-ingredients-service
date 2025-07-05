@@ -6,5 +6,5 @@ buildAndDeployApp([
     deployment: 'km-ingredients-service',
     container: 'km-ingredients-service',
     newRelicAppId: '490970453',
-    serviceUrl: 'https://api-hidmo.leultewolde.com/kitchen/actuator/health/liveness',
+    serviceUrl: 'https://api-hidmo.leultewolde.com/kitchen/stored-items/actuator/health/liveness',
 ])
