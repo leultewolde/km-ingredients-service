@@ -47,7 +47,6 @@ dependencies {
     implementation("io.minio:minio:8.5.17")
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     implementation 'org.springframework.cloud:spring-cloud-starter-vault-config'
-    implementation 'com.splunk.logging:splunk-library-javalogging:1.11.3'
     implementation 'org.flywaydb:flyway-core:10.11.0'
     implementation 'org.flywaydb:flyway-database-postgresql:10.11.0'
     annotationProcessor 'org.projectlombok:lombok'
