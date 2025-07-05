@@ -11,6 +11,6 @@ COPY --from=build /app/build/libs/km-ingredients-service-*.jar app.jar
 COPY newrelic/ /newrelic/
 COPY docker-entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
-EXPOSE 8080
+EXPOSE 8001
 ENTRYPOINT ["/entrypoint.sh"]
 
