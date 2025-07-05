@@ -28,6 +28,7 @@ public class EnvLogger implements ApplicationRunner {
                 "DB_USER",
                 "MINIO_URL",
                 "MINIO_BUCKET",
+                "splunk.url"
         };
 
         Arrays.stream(nonSensitiveKeys).forEach(key -> {

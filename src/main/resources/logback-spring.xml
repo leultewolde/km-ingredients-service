@@ -5,20 +5,4 @@
     <root level="INFO">
         <appender-ref ref="CONSOLE" />
     </root>
-
-    <springProfile name="prod,dev">
-        <property name="SPLUNK_URL" value="${splunk.url}" />
-        <property name="SPLUNK_TOKEN" value="${splunk.token}" />
-        <appender name="SPLUNK" class="com.splunk.logging.HttpEventCollectorLogbackAppender">
-            <url>${SPLUNK_URL}</url>
-            <token>${SPLUNK_TOKEN}</token>
-            <layout class="ch.qos.logback.classic.PatternLayout">
-                <pattern>${CONSOLE_LOG_PATTERN}</pattern>
-            </layout>
-        </appender>
-        <root level="INFO">
-            <appender-ref ref="CONSOLE" />
-            <appender-ref ref="SPLUNK" />
-        </root>
-    </springProfile>
 </configuration>
