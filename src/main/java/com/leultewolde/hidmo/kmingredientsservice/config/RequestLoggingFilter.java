@@ -28,6 +28,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             uri = uri + "?" + query;
         }
         log.info("Incoming request: {} {}", request.getMethod(), uri);
+        log.info("Response: {} {}", response.getStatus(), response.getContentType());
         filterChain.doFilter(request, response);
     }
 }
