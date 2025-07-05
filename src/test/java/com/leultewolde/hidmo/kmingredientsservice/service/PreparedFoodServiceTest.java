@@ -101,10 +101,10 @@ class PreparedFoodServiceTest {
         PreparedFoodResponseDTO dto = new PreparedFoodResponseDTO();
         dto.setName("Leftovers");
 
-        when(preparedFoodRepo.findAll()).thenReturn(List.of(food));
+        when(preparedFoodRepo.findAll(any(org.springframework.data.domain.Pageable.class))).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(food)));
         when(preparedFoodMapper.toDTO(any())).thenReturn(dto);
 
-        List<PreparedFoodResponseDTO> result = service.getAllPreparedFoods();
+        List<PreparedFoodResponseDTO> result = service.getAllPreparedFoods(org.springframework.data.domain.Pageable.unpaged());
         assertEquals(1, result.size());
         assertEquals("Leftovers", result.getFirst().getName());
     }

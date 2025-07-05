@@ -70,7 +70,7 @@ class PreparedFoodComponentTest {
 
     @Test
     void shouldListAllPreparedFoods() {
-        List<PreparedFoodResponseDTO> all = preparedFoodService.getAllPreparedFoods();
+        List<PreparedFoodResponseDTO> all = preparedFoodService.getAllPreparedFoods(org.springframework.data.domain.PageRequest.of(0, 20));
         assertNotNull(all);
     }
 }

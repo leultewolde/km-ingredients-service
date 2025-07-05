@@ -30,7 +30,7 @@ class PreparedFoodControllerTest {
         PreparedFoodResponseDTO responseDTO = new PreparedFoodResponseDTO();
         responseDTO.setName("Sauce");
 
-        when(service.getAllPreparedFoods()).thenReturn(List.of(responseDTO));
+        when(service.getAllPreparedFoods(any(org.springframework.data.domain.Pageable.class))).thenReturn(List.of(responseDTO));
 
         mockMvc.perform(get("/v1/prepared-foods"))
                 .andExpect(status().isOk())

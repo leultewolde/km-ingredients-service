@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -58,8 +59,8 @@ public class PreparedFoodService {
     }
 
     @Transactional(readOnly = true)
-    public List<PreparedFoodResponseDTO> getAllPreparedFoods() {
-        return preparedFoodRepo.findAll().stream()
+    public List<PreparedFoodResponseDTO> getAllPreparedFoods(Pageable pageable) {
+        return preparedFoodRepo.findAll(pageable).stream()
                 .map(mapper::toDTO)
                 .toList();
     }
