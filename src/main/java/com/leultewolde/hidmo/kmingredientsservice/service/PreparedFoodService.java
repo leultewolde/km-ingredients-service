@@ -17,8 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -30,6 +33,7 @@ public class PreparedFoodService {
     private final PreparedFoodMapper mapper;
     private final IngredientUsageMapper ingredientUsageMapper;
     private final IngredientResolver resolver;
+    private final SimpMessagingTemplate ws;
 
     @Transactional
     public PreparedFoodResponseDTO createPreparedFood(PreparedFoodRequestDTO dto) {
@@ -49,13 +53,19 @@ public class PreparedFoodService {
         List<IngredientUsage> usageList = dto.getIngredientsUsed().stream().map(usageDTO -> {
             IngredientUsage usage = ingredientUsageMapper.toEntity(usageDTO, resolver);
             ingredientRepo.findById(usageDTO.getIngredientId())
-                    .ifPresentOrElse(usage::setIngredient,
+                    .ifPresentOrElse(ingredient -> {
+                        usage.setIngredient(ingredient);
+                        ingredient.setQuantity(ingredient.getQuantity().subtract(usageDTO.getQuantity()));
+                        ingredientRepo.save(ingredient);
+                    },
                             () -> { throw new ResourceNotFoundException("Ingredient", "id", usageDTO.getIngredientId()); });
             return usage;
         }).toList();
 
         food.setIngredientsUsed(usageList);
-        return mapper.toDTO(preparedFoodRepo.save(food));
+        PreparedFoodResponseDTO saved = mapper.toDTO(preparedFoodRepo.save(food));
+        ws.convertAndSend("/topic/prepared-foods", getAllPreparedFoods(PageRequest.of(0, 20)));
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -63,6 +73,22 @@ public class PreparedFoodService {
         return preparedFoodRepo.findAll(pageable).stream()
                 .map(mapper::toDTO)
                 .toList();
+    }
+
+    @Transactional
+    public void deletePreparedFood(UUID id) {
+        PreparedFood food = preparedFoodRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("PreparedFood", "id", id));
+
+        for (IngredientUsage usage : food.getIngredientsUsed()) {
+            var ing = ingredientRepo.findById(usage.getIngredient().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Ingredient", "id", usage.getIngredient().getId()));
+            ing.setQuantity(ing.getQuantity().add(usage.getQuantity()));
+            ingredientRepo.save(ing);
+        }
+
+        preparedFoodRepo.deleteById(id);
+        ws.convertAndSend("/topic/prepared-foods", getAllPreparedFoods(PageRequest.of(0, 20)));
     }
 }
 
