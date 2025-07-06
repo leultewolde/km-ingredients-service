@@ -7,4 +7,10 @@ buildAndDeployApp([
     container: 'km-ingredients-service',
     newRelicAppId: '490970453',
     serviceUrl: 'https://api-hidmo.leultewolde.com/kitchen/stored-items/actuator/health/liveness',
+    vaultCred: 'vault-credentials',
+    projectType: 'gradle',
+    buildScript: './gradlew clean build',
+    testScript: './gradlew test',
+    sonarScript: './gradlew sonar',
+    skipSonar: false
 ])
