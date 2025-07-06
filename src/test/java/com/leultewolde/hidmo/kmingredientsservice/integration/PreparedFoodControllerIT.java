@@ -6,6 +6,7 @@ import com.leultewolde.hidmo.kmingredientsservice.dto.request.IngredientUsageReq
 import com.leultewolde.hidmo.kmingredientsservice.dto.request.PreparedFoodRequestDTO;
 import com.leultewolde.hidmo.kmingredientsservice.model.IngredientStatus;
 import com.leultewolde.hidmo.kmingredientsservice.service.IngredientService;
+import com.leultewolde.hidmo.kmingredientsservice.repository.PreparedFoodRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ class PreparedFoodControllerIT {
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
     @Autowired private IngredientService ingredientService;
+    @Autowired private PreparedFoodRepository preparedFoodRepository;
 
     private UUID ingredientId;
 
@@ -76,6 +78,26 @@ class PreparedFoodControllerIT {
         mockMvc.perform(get("/v1/prepared-foods"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void shouldDeletePreparedFood() throws Exception {
+        PreparedFoodRequestDTO dto = new PreparedFoodRequestDTO(
+                "Chili Paste", new BigDecimal("1"), "jar",
+                LocalDate.now(), LocalDate.now().plusDays(1),
+                "Fridge", IngredientStatus.AVAILABLE, null,
+                List.of(new IngredientUsageRequestDTO(ingredientId, BigDecimal.ONE))
+        );
+
+        mockMvc.perform(post("/v1/prepared-foods")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated());
+
+        UUID foodId = preparedFoodRepository.findAll().getFirst().getId();
+
+        mockMvc.perform(delete("/v1/prepared-foods/" + foodId))
+                .andExpect(status().isNoContent());
     }
 
     @Test

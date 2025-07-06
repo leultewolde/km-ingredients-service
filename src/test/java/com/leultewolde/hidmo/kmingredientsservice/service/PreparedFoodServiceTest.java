@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -25,6 +26,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -35,6 +37,7 @@ class PreparedFoodServiceTest {
     @Mock private IngredientRepository ingredientRepo;
     @Mock private PreparedFoodMapper preparedFoodMapper;
     @Mock private IngredientUsageMapper ingredientUsageMapper;
+    @Mock private SimpMessagingTemplate template;
     @InjectMocks private PreparedFoodService service;
 
     @Test
@@ -43,6 +46,7 @@ class PreparedFoodServiceTest {
         Ingredient ing = new Ingredient();
         ing.setId(ingId);
         ing.setName("Tomato");
+        ing.setQuantity(new BigDecimal("3"));
 
         IngredientUsageResponseDTO usageDTO = new IngredientUsageResponseDTO();
         usageDTO.setIngredientId(ingId);
@@ -80,7 +84,9 @@ class PreparedFoodServiceTest {
         prep.setIngredientsUsed(List.of(new IngredientUsage()));
 
         when(ingredientRepo.findById(ingId)).thenReturn(Optional.of(ing));
+        when(ingredientRepo.save(any())).thenAnswer(i -> i.getArgument(0));
         when(preparedFoodRepo.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(preparedFoodRepo.findAll(any(org.springframework.data.domain.Pageable.class))).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of()));
         when(preparedFoodMapper.toEntity(any())).thenReturn(prep);
         when(preparedFoodMapper.toDTO(any())).thenReturn(dto);
         when(ingredientUsageMapper.toEntity(any(), any())).thenReturn(new IngredientUsage());
@@ -90,6 +96,8 @@ class PreparedFoodServiceTest {
         assertEquals("Tomato Sauce", result.getName());
         assertEquals(1, result.getIngredientsUsed().size());
         verify(preparedFoodRepo).save(any());
+        assertEquals(new BigDecimal("1"), ing.getQuantity());
+        verify(template).convertAndSend(anyString(), any(Object.class));
     }
 
     @Test
@@ -107,5 +115,30 @@ class PreparedFoodServiceTest {
         List<PreparedFoodResponseDTO> result = service.getAllPreparedFoods(org.springframework.data.domain.Pageable.unpaged());
         assertEquals(1, result.size());
         assertEquals("Leftovers", result.getFirst().getName());
+    }
+
+    @Test
+    void shouldDeletePreparedFood() {
+        UUID foodId = UUID.randomUUID();
+        PreparedFood food = new PreparedFood();
+        food.setId(foodId);
+        Ingredient ingredient = new Ingredient();
+        ingredient.setId(UUID.randomUUID());
+        ingredient.setQuantity(new BigDecimal("1"));
+        IngredientUsage usage = new IngredientUsage();
+        usage.setIngredient(ingredient);
+        usage.setQuantity(new BigDecimal("1"));
+        food.setIngredientsUsed(List.of(usage));
+
+        when(preparedFoodRepo.findById(foodId)).thenReturn(Optional.of(food));
+        when(preparedFoodRepo.findAll(any(org.springframework.data.domain.Pageable.class))).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of()));
+        when(ingredientRepo.findById(any())).thenReturn(Optional.of(ingredient));
+        when(ingredientRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        service.deletePreparedFood(foodId);
+
+        verify(preparedFoodRepo).deleteById(foodId);
+        assertEquals(new BigDecimal("2"), ingredient.getQuantity());
+        verify(template).convertAndSend(anyString(), any(Object.class));
     }
 }

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -26,6 +28,7 @@ class IngredientServiceTest {
 
     @Mock private IngredientRepository repo;
     @Mock private IngredientMapper mapper;
+    @Mock private SimpMessagingTemplate template;
     @InjectMocks private IngredientService service;
 
     @Test
@@ -51,6 +54,7 @@ class IngredientServiceTest {
         responseDTO.setQuantity(new BigDecimal("5"));
 
         when(repo.save(any())).thenReturn(saved);
+        when(repo.findAll(any(org.springframework.data.domain.Pageable.class))).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of()));
         when(mapper.toEntity(any())).thenReturn(ing);
         when(mapper.toDTO(any())).thenReturn(responseDTO);
 
@@ -59,6 +63,7 @@ class IngredientServiceTest {
         assertNotNull(result.getId());
         assertEquals("Apple", result.getName());
         verify(repo).save(any());
+        verify(template).convertAndSend(anyString(), any(Object.class));
     }
 
     @Test
@@ -83,8 +88,10 @@ class IngredientServiceTest {
     void shouldDeleteIngredient() {
         UUID id = UUID.randomUUID();
         when(repo.existsById(id)).thenReturn(true);
+        when(repo.findAll(any(org.springframework.data.domain.Pageable.class))).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of()));
         service.delete(id);
         verify(repo).deleteById(id);
+        verify(template).convertAndSend(anyString(), any(Object.class));
     }
 
     @Test

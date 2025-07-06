@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(PreparedFoodController.class)
@@ -88,5 +89,14 @@ class PreparedFoodControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidJson))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldDeletePreparedFood() throws Exception {
+        UUID id = UUID.randomUUID();
+        org.mockito.Mockito.doNothing().when(service).deletePreparedFood(id);
+
+        mockMvc.perform(delete("/v1/prepared-foods/" + id))
+                .andExpect(status().isNoContent());
     }
 }

@@ -8,9 +8,11 @@ import com.leultewolde.hidmo.kmingredientsservice.model.Ingredient;
 import com.leultewolde.hidmo.kmingredientsservice.model.IngredientStatus;
 import com.leultewolde.hidmo.kmingredientsservice.repository.IngredientRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,6 +23,7 @@ public class IngredientService {
 
     private final IngredientRepository repo;
     private final IngredientMapper mapper;
+    private final SimpMessagingTemplate ws;
 
     public List<IngredientResponseDTO> getAll(Pageable pageable) {
         return repo.findAll(pageable).stream().map(mapper::toDTO).toList();
@@ -37,7 +40,9 @@ public class IngredientService {
         if (ing.getStatus() == null) {
             ing.setStatus(IngredientStatus.AVAILABLE);
         }
-        return mapper.toDTO(repo.save(ing));
+        IngredientResponseDTO saved = mapper.toDTO(repo.save(ing));
+        ws.convertAndSend("/topic/ingredients", getAll(PageRequest.of(0, 20)));
+        return saved;
     }
 
     public IngredientResponseDTO getByBarcode(String barcode) {
@@ -51,5 +56,6 @@ public class IngredientService {
             throw new ResourceNotFoundException("Ingredient", "id", id);
         }
         repo.deleteById(id);
+        ws.convertAndSend("/topic/ingredients", getAll(PageRequest.of(0, 20)));
     }
 }
