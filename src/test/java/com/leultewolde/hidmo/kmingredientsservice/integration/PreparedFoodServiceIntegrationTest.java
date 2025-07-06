@@ -7,6 +7,7 @@ import com.leultewolde.hidmo.kmingredientsservice.dto.response.PreparedFoodRespo
 import com.leultewolde.hidmo.kmingredientsservice.model.IngredientStatus;
 import com.leultewolde.hidmo.kmingredientsservice.service.IngredientService;
 import com.leultewolde.hidmo.kmingredientsservice.service.PreparedFoodService;
+import com.leultewolde.hidmo.kmingredientsservice.repository.PreparedFoodRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +29,9 @@ class PreparedFoodServiceIntegrationTest {
 
     @Autowired
     private PreparedFoodService preparedFoodService;
+
+    @Autowired
+    private PreparedFoodRepository preparedFoodRepository;
 
     @Test
     void shouldCreatePreparedFoodWithIngredient() {
@@ -51,6 +55,7 @@ class PreparedFoodServiceIntegrationTest {
         assertEquals("Tomato Sauce", result.getName());
         assertEquals(1, result.getIngredientsUsed().size());
         assertEquals(ingId, result.getIngredientsUsed().getFirst().getIngredientId());
+        assertEquals(new BigDecimal("1.0"), ingredientService.getById(ingId).getQuantity());
     }
 
     @Test
@@ -62,5 +67,29 @@ class PreparedFoodServiceIntegrationTest {
                 IngredientStatus.AVAILABLE, null, List.of(invalidUsage)
         );
         assertThrows(RuntimeException.class, () -> preparedFoodService.createPreparedFood(dto));
+    }
+
+    @Test
+    void deletingPreparedFoodRestoresIngredientQuantities() {
+        UUID ingId = ingredientService.create(new IngredientRequestDTO(
+                "Onion", new BigDecimal("2"), "pcs",
+                BigDecimal.ONE, LocalDate.now(),
+                LocalDate.now().plusDays(3), "Pantry",
+                IngredientStatus.AVAILABLE, "ON-1", null
+        )).getId();
+
+        IngredientUsageRequestDTO usage = new IngredientUsageRequestDTO(ingId, new BigDecimal("1"));
+        PreparedFoodRequestDTO dto = new PreparedFoodRequestDTO(
+                "Onion Mix", BigDecimal.ONE, "bowl",
+                LocalDate.now(), LocalDate.now().plusDays(1), "Fridge",
+                IngredientStatus.AVAILABLE, null, List.of(usage)
+        );
+
+        preparedFoodService.createPreparedFood(dto);
+        UUID foodId = preparedFoodRepository.findAll().getFirst().getId();
+
+        preparedFoodService.deletePreparedFood(foodId);
+
+        assertEquals(new BigDecimal("2"), ingredientService.getById(ingId).getQuantity());
     }
 }

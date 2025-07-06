@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.PageRequest;
 
+import java.util.UUID;
+
 import java.util.List;
 
 @RestController
@@ -30,6 +32,12 @@ public class PreparedFoodController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(preparedFoodService.getAllPreparedFoods(PageRequest.of(page, size)));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        preparedFoodService.deletePreparedFood(id);
+        return ResponseEntity.noContent().build();
     }
 }
 
