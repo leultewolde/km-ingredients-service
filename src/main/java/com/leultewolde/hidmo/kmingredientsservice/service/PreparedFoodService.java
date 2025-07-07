@@ -64,15 +64,13 @@ public class PreparedFoodService {
 
         food.setIngredientsUsed(usageList);
         PreparedFoodResponseDTO saved = mapper.toDTO(preparedFoodRepo.save(food));
-        ws.convertAndSend("/topic/prepared-foods", getAllPreparedFoods(PageRequest.of(0, 20)));
+        ws.convertAndSend("/topic/prepared-foods", fetchPreparedFoods(PageRequest.of(0, 20)));
         return saved;
     }
 
     @Transactional(readOnly = true)
     public List<PreparedFoodResponseDTO> getAllPreparedFoods(Pageable pageable) {
-        return preparedFoodRepo.findAll(pageable).stream()
-                .map(mapper::toDTO)
-                .toList();
+        return fetchPreparedFoods(pageable);
     }
 
     @Transactional
@@ -88,7 +86,13 @@ public class PreparedFoodService {
         }
 
         preparedFoodRepo.deleteById(id);
-        ws.convertAndSend("/topic/prepared-foods", getAllPreparedFoods(PageRequest.of(0, 20)));
+        ws.convertAndSend("/topic/prepared-foods", fetchPreparedFoods(PageRequest.of(0, 20)));
+    }
+
+    private List<PreparedFoodResponseDTO> fetchPreparedFoods(Pageable pageable) {
+        return preparedFoodRepo.findAll(pageable).stream()
+                .map(mapper::toDTO)
+                .toList();
     }
 }
 
