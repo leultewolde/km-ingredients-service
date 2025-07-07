@@ -85,8 +85,8 @@ class PreparedFoodServiceIntegrationTest {
                 IngredientStatus.AVAILABLE, null, List.of(usage)
         );
 
-        preparedFoodService.createPreparedFood(dto);
-        UUID foodId = preparedFoodRepository.findAll().getFirst().getId();
+        PreparedFoodResponseDTO created = preparedFoodService.createPreparedFood(dto);
+        UUID foodId = created.getId();
 
         preparedFoodService.deletePreparedFood(foodId);
 

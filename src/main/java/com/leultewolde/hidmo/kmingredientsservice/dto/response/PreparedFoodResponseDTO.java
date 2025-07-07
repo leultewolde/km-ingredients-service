@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PreparedFoodResponseDTO {
+    private java.util.UUID id;
     private String name;
     private BigDecimal quantity;
     private String unit;
