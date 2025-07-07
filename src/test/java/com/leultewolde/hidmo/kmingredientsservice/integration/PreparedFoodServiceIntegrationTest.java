@@ -12,6 +12,7 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@TestPropertySource(properties = "spring.jpa.hibernate.ddl-auto=create-drop")
 class PreparedFoodServiceIntegrationTest {
 
     @Autowired
@@ -85,11 +87,11 @@ class PreparedFoodServiceIntegrationTest {
                 IngredientStatus.AVAILABLE, null, List.of(usage)
         );
 
-        preparedFoodService.createPreparedFood(dto);
-        UUID foodId = preparedFoodRepository.findAll().getFirst().getId();
+        PreparedFoodResponseDTO created = preparedFoodService.createPreparedFood(dto);
+        UUID foodId = created.getId();
 
         preparedFoodService.deletePreparedFood(foodId);
 
-        assertEquals(new BigDecimal("2"), ingredientService.getById(ingId).getQuantity());
+        assertEquals(0, ingredientService.getById(ingId).getQuantity().compareTo(new BigDecimal("2")));
     }
 }

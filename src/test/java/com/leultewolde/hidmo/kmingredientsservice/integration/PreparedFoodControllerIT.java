@@ -39,6 +39,7 @@ class PreparedFoodControllerIT {
 
     @BeforeEach
     void setup() {
+        preparedFoodRepository.deleteAll();
         IngredientRequestDTO ing = new IngredientRequestDTO(
                 "Chili", new BigDecimal("2.0"), "cups",
                 new BigDecimal("1.00"), LocalDate.now(),
