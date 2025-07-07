@@ -57,7 +57,11 @@ class PreparedFoodServiceIntegrationTest {
         assertEquals("Tomato Sauce", result.getName());
         assertEquals(1, result.getIngredientsUsed().size());
         assertEquals(ingId, result.getIngredientsUsed().getFirst().getIngredientId());
-        assertEquals(new BigDecimal("1.0"), ingredientService.getById(ingId).getQuantity());
+        assertEquals(
+                new BigDecimal("1.0").stripTrailingZeros(),
+                ingredientService.getById(ingId).getQuantity().stripTrailingZeros()
+        );
+
     }
 
     @Test
