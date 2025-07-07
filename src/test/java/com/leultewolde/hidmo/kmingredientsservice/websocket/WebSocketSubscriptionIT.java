@@ -1,9 +1,9 @@
 package com.leultewolde.hidmo.kmingredientsservice.websocket;
 
 import com.leultewolde.hidmo.kmingredientsservice.dto.request.IngredientRequestDTO;
-import com.leultewolde.hidmo.kmingredientsservice.dto.response.IngredientResponseDTO;
 import com.leultewolde.hidmo.kmingredientsservice.model.IngredientStatus;
 import com.leultewolde.hidmo.kmingredientsservice.service.IngredientService;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,18 +48,19 @@ class WebSocketSubscriptionIT {
         BlockingQueue<List> queue = new LinkedBlockingQueue<>();
 
         StompSession session = stompClient
-                .connect(String.format("ws://localhost:%d/ws", port), new WebSocketHttpHeaders(),
+                .connectAsync(String.format("ws://localhost:%d/ws", port), new WebSocketHttpHeaders(),
                         new StompSessionHandlerAdapter() {})
                 .get(3, TimeUnit.SECONDS);
 
         session.subscribe("/topic/ingredients", new StompFrameHandler() {
+            @NotNull
             @Override
-            public Type getPayloadType(StompHeaders headers) {
+            public Type getPayloadType(@NotNull StompHeaders headers) {
                 return List.class;
             }
 
             @Override
-            public void handleFrame(StompHeaders headers, Object payload) {
+            public void handleFrame(@NotNull StompHeaders headers, Object payload) {
                 queue.offer((List) payload);
             }
         });
