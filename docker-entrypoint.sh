@@ -1,15 +1,10 @@
 #!/bin/sh
 set -e
 
-# Fetch New Relic license key from Hashicorp Vault if VAULT_TOKEN is provided
-if [ -n "$VAULT_TOKEN" ]; then
-  VAULT_URL="${VAULT_ADDR:-https://vault.leultewolde.com}"
-  VAULT_PATH="${VAULT_NEW_RELIC_PATH:-secret/data/newrelic}"
-  LICENSE=$(curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "$VAULT_URL/v1/$VAULT_PATH" | jq -r '.data.data.NEW_RELIC_LICENSE_KEY // .data.data.license_key // empty')
-  if [ -n "$LICENSE" ]; then
-    export NEW_RELIC_LICENSE_KEY="$LICENSE"
-  fi
+if [ -z "$NEW_RELIC_LICENSE_KEY" ]; then
+    echo "Error: NEW_RELIC_LICENSE_KEY is not set. Exiting." >&2
+    exit 1
 fi
-
+export NEW_RELIC_LICENSE_KEY="$NEW_RELIC_LICENSE_KEY"
 exec java -javaagent:/newrelic/newrelic.jar -jar app.jar
 
