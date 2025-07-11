@@ -8,7 +8,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y curl jq \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=build /app/build/libs/km-ingredients-service-*.jar app.jar
-COPY newrelic/ /newrelic/
+#COPY newrelic/ /newrelic/
 COPY docker-entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 EXPOSE 8001
