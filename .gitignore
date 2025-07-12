@@ -39,3 +39,4 @@ out/
 .env
 /logs/app.log
 /target/
+qodana.yaml
