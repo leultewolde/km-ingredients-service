@@ -1,6 +1,7 @@
 package com.leultewolde.hidmo.kmingredientsservice.controller;
 
 import com.leultewolde.hidmo.kmingredientsservice.dto.response.PreparedFoodResponseDTO;
+import com.leultewolde.hidmo.kmingredientsservice.exception.ResourceNotFoundException;
 import com.leultewolde.hidmo.kmingredientsservice.service.PreparedFoodService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,6 +90,30 @@ class PreparedFoodControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidJson))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnIngredientById() throws Exception {
+        UUID id = UUID.randomUUID();
+        PreparedFoodResponseDTO dto = new PreparedFoodResponseDTO();
+        dto.setId(id);
+        dto.setName("Leftovers");
+
+        when(service.getById(id)).thenReturn(dto);
+
+        mockMvc.perform(get("/v1/prepared-foods/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()))
+                .andExpect(jsonPath("$.name").value("Leftovers"));
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenIngredientByIdNotExists() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(service.getById(id)).thenThrow(new ResourceNotFoundException("PreparedFood","id",id));
+
+        mockMvc.perform(get("/v1/prepared-foods/" + id))
+                .andExpect(status().isNotFound());
     }
 
     @Test

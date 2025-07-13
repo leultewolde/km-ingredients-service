@@ -2,6 +2,7 @@ package com.leultewolde.hidmo.kmingredientsservice.service;
 
 import com.leultewolde.hidmo.kmingredientsservice.dto.request.IngredientRequestDTO;
 import com.leultewolde.hidmo.kmingredientsservice.dto.response.IngredientResponseDTO;
+import com.leultewolde.hidmo.kmingredientsservice.exception.ResourceNotFoundException;
 import com.leultewolde.hidmo.kmingredientsservice.mapper.IngredientMapper;
 import com.leultewolde.hidmo.kmingredientsservice.model.Ingredient;
 import com.leultewolde.hidmo.kmingredientsservice.model.IngredientStatus;
@@ -15,6 +16,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -82,6 +84,43 @@ class IngredientServiceTest {
         List<IngredientResponseDTO> result = service.getAll(org.springframework.data.domain.Pageable.unpaged());
         assertEquals(1, result.size());
         assertEquals("Salt", result.getFirst().getName());
+    }
+
+    @Test
+    void shouldFindIngredientByID() {
+        UUID id = UUID.randomUUID();
+
+        IngredientResponseDTO dto = new IngredientResponseDTO();
+        dto.setId(id);
+        dto.setName("Salt");
+
+        Ingredient ing = new Ingredient();
+        ing.setId(UUID.randomUUID());
+        ing.setName("Salt");
+
+        when(repo.findById(any(UUID.class))).thenReturn(Optional.of(ing));
+        when(mapper.toDTO(any())).thenReturn(dto);
+
+        IngredientResponseDTO result = service.getById(id);
+        assertEquals(id, result.getId());
+        assertEquals("Salt", result.getName());
+    }
+
+    @Test
+    void shouldNotFindIngredientByUnknownID() {
+        UUID id = UUID.randomUUID();
+
+        IngredientResponseDTO dto = new IngredientResponseDTO();
+        dto.setId(id);
+        dto.setName("Salt");
+
+        Ingredient ing = new Ingredient();
+        ing.setId(UUID.randomUUID());
+        ing.setName("Salt");
+
+        when(repo.findById(any(UUID.class))).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> service.getById(id));
     }
 
     @Test

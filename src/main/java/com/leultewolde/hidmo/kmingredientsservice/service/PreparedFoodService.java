@@ -68,6 +68,11 @@ public class PreparedFoodService {
         return saved;
     }
 
+    public PreparedFoodResponseDTO getById(UUID id) {
+        return preparedFoodRepo.findById(id).map(mapper::toDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("PreparedFood", "id", id));
+    }
+
     @Transactional(readOnly = true)
     public List<PreparedFoodResponseDTO> getAllPreparedFoods(Pageable pageable) {
         return fetchPreparedFoods(pageable);
