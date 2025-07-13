@@ -4,6 +4,7 @@ import com.leultewolde.hidmo.kmingredientsservice.dto.request.IngredientUsageReq
 import com.leultewolde.hidmo.kmingredientsservice.dto.request.PreparedFoodRequestDTO;
 import com.leultewolde.hidmo.kmingredientsservice.dto.response.IngredientUsageResponseDTO;
 import com.leultewolde.hidmo.kmingredientsservice.dto.response.PreparedFoodResponseDTO;
+import com.leultewolde.hidmo.kmingredientsservice.exception.ResourceNotFoundException;
 import com.leultewolde.hidmo.kmingredientsservice.mapper.IngredientUsageMapper;
 import com.leultewolde.hidmo.kmingredientsservice.mapper.PreparedFoodMapper;
 import com.leultewolde.hidmo.kmingredientsservice.model.Ingredient;
@@ -25,6 +26,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -115,6 +117,43 @@ class PreparedFoodServiceTest {
         List<PreparedFoodResponseDTO> result = service.getAllPreparedFoods(org.springframework.data.domain.Pageable.unpaged());
         assertEquals(1, result.size());
         assertEquals("Leftovers", result.getFirst().getName());
+    }
+
+    @Test
+    void shouldFindIngredientByID() {
+        UUID id = UUID.randomUUID();
+
+        PreparedFood food = new PreparedFood();
+        food.setId(id);
+        food.setName("Leftovers");
+
+        PreparedFoodResponseDTO dto = new PreparedFoodResponseDTO();
+        dto.setId(id);
+        dto.setName("Leftovers");
+
+        when(preparedFoodRepo.findById(any(UUID.class))).thenReturn(Optional.of(food));
+        when(preparedFoodMapper.toDTO(any())).thenReturn(dto);
+
+        PreparedFoodResponseDTO result = service.getById(id);
+        assertEquals(id, result.getId());
+        assertEquals("Leftovers", result.getName());
+    }
+
+    @Test
+    void shouldNotFindIngredientByUnknownID() {
+        UUID id = UUID.randomUUID();
+
+        PreparedFood food = new PreparedFood();
+        food.setId(id);
+        food.setName("Leftovers");
+
+        PreparedFoodResponseDTO dto = new PreparedFoodResponseDTO();
+        dto.setId(id);
+        dto.setName("Leftovers");
+
+        when(preparedFoodRepo.findById(any(UUID.class))).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> service.getById(id));
     }
 
     @Test

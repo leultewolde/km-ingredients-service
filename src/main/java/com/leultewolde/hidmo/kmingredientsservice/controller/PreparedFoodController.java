@@ -27,6 +27,11 @@ public class PreparedFoodController {
         return ResponseEntity.status(HttpStatus.CREATED).body(result.getName());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<PreparedFoodResponseDTO> getById(@PathVariable UUID id) {
+        return ResponseEntity.ok(preparedFoodService.getById(id));
+    }
+
     @GetMapping
     public ResponseEntity<List<PreparedFoodResponseDTO>> getAll(
             @RequestParam(defaultValue = "0") int page,
