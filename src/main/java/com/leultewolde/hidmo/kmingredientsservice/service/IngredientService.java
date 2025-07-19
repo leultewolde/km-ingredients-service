@@ -36,6 +36,18 @@ public class IngredientService {
 
     @Transactional
     public IngredientResponseDTO create(IngredientRequestDTO dto) {
+        if (dto.getBarcode() != null) {
+            var existingOpt = repo.findByBarcode(dto.getBarcode());
+            if (existingOpt.isPresent()) {
+                Ingredient existing = existingOpt.get();
+                existing.setQuantity(existing.getQuantity().add(dto.getQuantity()));
+                existing.setStatus(dto.getStatus() != null ? dto.getStatus() : existing.getStatus());
+                IngredientResponseDTO saved = mapper.toDTO(repo.save(existing));
+                ws.convertAndSend("/topic/ingredients", getAll(PageRequest.of(0, 20)));
+                return saved;
+            }
+        }
+
         Ingredient ing = mapper.toEntity(dto);
         if (ing.getStatus() == null) {
             ing.setStatus(IngredientStatus.AVAILABLE);

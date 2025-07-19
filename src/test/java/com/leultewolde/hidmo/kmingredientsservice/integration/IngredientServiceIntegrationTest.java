@@ -60,4 +60,16 @@ class IngredientServiceIntegrationTest {
         UUID id = service.create(dto).getId();
         assertEquals(IngredientStatus.AVAILABLE, service.getById(id).getStatus());
     }
+
+    @Test
+    void createWithExistingBarcodeAddsQuantity() {
+        IngredientRequestDTO dto = getSampleDTO();
+        UUID firstId = service.create(dto).getId();
+
+        dto.setQuantity(new BigDecimal("1.0"));
+        service.create(dto);
+
+        IngredientResponseDTO result = service.getById(firstId);
+        assertEquals(new BigDecimal("1.5"), result.getQuantity());
+    }
 }
