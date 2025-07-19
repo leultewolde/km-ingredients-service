@@ -3,6 +3,7 @@ package com.leultewolde.hidmo.kmingredientsservice.websocket;
 import com.leultewolde.hidmo.kmingredientsservice.dto.request.IngredientRequestDTO;
 import com.leultewolde.hidmo.kmingredientsservice.model.IngredientStatus;
 import com.leultewolde.hidmo.kmingredientsservice.service.IngredientService;
+import com.leultewolde.hidmo.kmingredientsservice.constant.WebSocketTopics;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,7 @@ class WebSocketSubscriptionIT {
                         new StompSessionHandlerAdapter() {})
                 .get(3, TimeUnit.SECONDS);
 
-        session.subscribe("/topic/ingredients", new StompFrameHandler() {
+        session.subscribe(WebSocketTopics.INGREDIENTS, new StompFrameHandler() {
             @NotNull
             @Override
             public Type getPayloadType(@NotNull StompHeaders headers) {

@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.leultewolde.hidmo.kmingredientsservice.constant.WebSocketTopics;
 
 import java.util.List;
 import java.util.UUID;
@@ -64,7 +65,7 @@ public class PreparedFoodService {
 
         food.setIngredientsUsed(usageList);
         PreparedFoodResponseDTO saved = mapper.toDTO(preparedFoodRepo.save(food));
-        ws.convertAndSend("/topic/prepared-foods", fetchPreparedFoods(PageRequest.of(0, 20)));
+        ws.convertAndSend(WebSocketTopics.PREPARED_FOODS, fetchPreparedFoods(PageRequest.of(0, 20)));
         return saved;
     }
 
@@ -91,7 +92,7 @@ public class PreparedFoodService {
         }
 
         preparedFoodRepo.deleteById(id);
-        ws.convertAndSend("/topic/prepared-foods", fetchPreparedFoods(PageRequest.of(0, 20)));
+        ws.convertAndSend(WebSocketTopics.PREPARED_FOODS, fetchPreparedFoods(PageRequest.of(0, 20)));
     }
 
     private List<PreparedFoodResponseDTO> fetchPreparedFoods(Pageable pageable) {

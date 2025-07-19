@@ -4,6 +4,7 @@ import com.leultewolde.hidmo.kmingredientsservice.dto.response.IngredientRespons
 import com.leultewolde.hidmo.kmingredientsservice.dto.response.PreparedFoodResponseDTO;
 import com.leultewolde.hidmo.kmingredientsservice.service.IngredientService;
 import com.leultewolde.hidmo.kmingredientsservice.service.PreparedFoodService;
+import com.leultewolde.hidmo.kmingredientsservice.constant.WebSocketTopics;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -20,13 +21,13 @@ public class IngredientWebSocketController {
     private final PreparedFoodService preparedFoodService;
 
     @MessageMapping("/ingredients")
-    @SendTo("/topic/ingredients")
+    @SendTo(WebSocketTopics.INGREDIENTS)
     public List<IngredientResponseDTO> streamIngredients() {
         return ingredientService.getAll(PageRequest.of(0, 20));
     }
 
     @MessageMapping("/prepared-foods")
-    @SendTo("/topic/prepared-foods")
+    @SendTo(WebSocketTopics.PREPARED_FOODS)
     public List<PreparedFoodResponseDTO> streamPreparedFoods() {
         return preparedFoodService.getAllPreparedFoods(PageRequest.of(0, 20));
     }

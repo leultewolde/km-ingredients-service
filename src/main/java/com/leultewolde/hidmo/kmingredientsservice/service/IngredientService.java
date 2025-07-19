@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
+import com.leultewolde.hidmo.kmingredientsservice.constant.WebSocketTopics;
 
 import java.util.List;
 import java.util.UUID;
@@ -43,7 +44,7 @@ public class IngredientService {
                 existing.setQuantity(existing.getQuantity().add(dto.getQuantity()));
                 existing.setStatus(dto.getStatus() != null ? dto.getStatus() : existing.getStatus());
                 IngredientResponseDTO saved = mapper.toDTO(repo.save(existing));
-                ws.convertAndSend("/topic/ingredients", getAll(PageRequest.of(0, 20)));
+                ws.convertAndSend(WebSocketTopics.INGREDIENTS, getAll(PageRequest.of(0, 20)));
                 return saved;
             }
         }
@@ -53,7 +54,7 @@ public class IngredientService {
             ing.setStatus(IngredientStatus.AVAILABLE);
         }
         IngredientResponseDTO saved = mapper.toDTO(repo.save(ing));
-        ws.convertAndSend("/topic/ingredients", getAll(PageRequest.of(0, 20)));
+        ws.convertAndSend(WebSocketTopics.INGREDIENTS, getAll(PageRequest.of(0, 20)));
         return saved;
     }
 
@@ -68,6 +69,6 @@ public class IngredientService {
             throw new ResourceNotFoundException("Ingredient", "id", id);
         }
         repo.deleteById(id);
-        ws.convertAndSend("/topic/ingredients", getAll(PageRequest.of(0, 20)));
+        ws.convertAndSend(WebSocketTopics.INGREDIENTS, getAll(PageRequest.of(0, 20)));
     }
 }
