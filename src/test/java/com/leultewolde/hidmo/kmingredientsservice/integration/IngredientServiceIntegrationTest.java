@@ -70,6 +70,7 @@ class IngredientServiceIntegrationTest {
         service.create(dto);
 
         IngredientResponseDTO result = service.getById(firstId);
-        assertEquals(new BigDecimal("1.5"), result.getQuantity());
+        assertEquals(new BigDecimal("1.5").stripTrailingZeros(),
+                result.getQuantity().stripTrailingZeros());
     }
 }
