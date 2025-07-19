@@ -51,6 +51,26 @@ class IngredientControllerIT {
     }
 
     @Test
+    void postingExistingBarcodeAddsQuantity() throws Exception {
+        IngredientRequestDTO dto = sampleDTO();
+        mockMvc.perform(post("/v1/ingredients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated());
+
+        dto.setQuantity(BigDecimal.valueOf(0.5));
+
+        mockMvc.perform(post("/v1/ingredients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/v1/ingredients/by-barcode/" + dto.getBarcode()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.quantity", is(2.0)));
+    }
+
+    @Test
     void shouldValidateMissingFields() throws Exception {
         mockMvc.perform(post("/v1/ingredients")
                         .contentType(MediaType.APPLICATION_JSON)
